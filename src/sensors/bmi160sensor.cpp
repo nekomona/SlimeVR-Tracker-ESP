@@ -142,12 +142,12 @@ void BMI160Sensor::motionLoop() {
     mahonyQuaternionUpdate(q, Axyz[0], Axyz[1], Axyz[2], Gxyz[0], Gxyz[1], Gxyz[2], Mxyz[0], Mxyz[1], Mxyz[2], deltat * 1.0e-6f);
     #endif
     quaternion.set(-q[2], q[1], q[3], q[0]);
-    quaternion *= sensorOffset;
 
 #if SEND_ACCELERATION
     {
-        this->acceleration[0] = Axyz[0];
-        this->acceleration[1] = Axyz[1];
+        // Use the same mapping as in quaternion.set(-q[2], q[1], q[3], q[0]);
+        this->acceleration[0] = -Axyz[1];
+        this->acceleration[1] = Axyz[0];
         this->acceleration[2] = Axyz[2];
 
         // get the component of the acceleration that is gravity
@@ -167,6 +167,8 @@ void BMI160Sensor::motionLoop() {
         this->acceleration[2] *= ASCALE_4G;
     }
 #endif
+
+    quaternion *= sensorOffset;
 
 #if ENABLE_INSPECTION
     {
