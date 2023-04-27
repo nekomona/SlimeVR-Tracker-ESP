@@ -70,8 +70,11 @@ public:
     uint8_t getSensorType() {
         return sensorType;
     };
-    Quat& getQuaternion() {
+    const Quat& getQuaternion() {
         return quaternion;
+    };
+    bool hasNewData() {
+        return newData;
     };
 
     bool hadData = false;

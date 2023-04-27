@@ -41,10 +41,16 @@ unsigned long lastPacketMs;
 bool connected = false;
 
 
+uint8_t featureFlagsRequestAttempts = 0;
+uint8_t featureFlagsRequestTimestamp = 0;
+ServerFeatureFlags serverFeatureFlags;
+
 uint8_t serialBuffer[128];
 size_t serialLength = 0;
 
 unsigned char buf[8];
+
+bool isBundle = false;
 
 // TODO: Cleanup with proper classes
 SlimeVR::Logging::Logger udpClientLogger("UDPClient");
@@ -83,6 +89,7 @@ T convert_chars(unsigned char * const src)
 namespace DataTransfer {
 
     bool beginPacket() {
+        if (isBundle) return true;
         int r = Udp.beginPacket(host, port);
         if(r == 0) {
             // Print error
@@ -91,11 +98,30 @@ namespace DataTransfer {
     }
 
     bool endPacket() {
+        if (isBundle) return true;
         int r = Udp.endPacket();
         if(r == 0) {
             // Print error
         }
         return r > 0;
+    }
+
+    bool beginBundle() {
+        if (!serverFeatureFlags.protocolBundleSupport) return false;
+        if (!connected || isBundle) return false;
+        if (beginPacket()) {
+            DataTransfer::sendPacketType(PACKET_BUNDLE);
+            DataTransfer::sendPacketNumber();
+            isBundle = true;
+            return true;
+        }
+        return false;
+    }
+    bool endBundle() {
+        if (!serverFeatureFlags.protocolBundleSupport) return false;
+        if (!isBundle) return false;
+        isBundle = false;
+        return endPacket();
     }
 
     void sendPacketType(uint8_t type) {
@@ -106,6 +132,7 @@ namespace DataTransfer {
     }
 
     void sendPacketNumber() {
+        if (isBundle) return;
         uint64_t pn = packetNumber++;
         sendLong(pn);
     }
@@ -366,6 +393,21 @@ void Network::sendTemperature(float temperature, uint8_t sensorId) {
     }
 }
 
+// PACKET_FEATURE_FLAGS 22
+void Network::sendFeatureFlags() {
+    if(!connected)
+    {
+        return;
+    }
+
+    if(DataTransfer::beginPacket()) {
+        DataTransfer::sendPacketType(PACKET_FEATURE_FLAGS);
+        DataTransfer::sendPacketNumber();
+        DataTransfer::sendInt(0);
+        DataTransfer::endPacket();
+    }
+}
+
 void Network::sendHandshake() {
     if(DataTransfer::beginPacket()) {
         DataTransfer::sendPacketType(PACKET_HANDSHAKE);
@@ -568,6 +610,14 @@ void ServerConnection::updateSensorState(Sensor ** const sensors) {
     }
 }
 
+void requestFeatureFlags() {
+    if (serverFeatureFlags.available || featureFlagsRequestAttempts >= 15) return;
+    if (millis() - featureFlagsRequestTimestamp < 1000) return;
+    featureFlagsRequestTimestamp = millis();
+    featureFlagsRequestAttempts++;
+    Network::sendFeatureFlags();
+}
+
 bool ServerConnection::isConnected() {
     return connected;
 }
@@ -598,6 +648,8 @@ void ServerConnection::connect()
                 port = Udp.remotePort();
                 lastPacketMs = now;
                 connected = true;
+                featureFlagsRequestAttempts = 0;
+                serverFeatureFlags.reset();
                 statusManager.setStatus(SlimeVR::Status::SERVER_CONNECTING, false);
                 ledManager.off();
                 udpClientLogger.debug("Handshake successful, server is %s:%d", Udp.remoteIP().toString().c_str(), + Udp.remotePort());
@@ -678,6 +730,21 @@ void ServerConnection::update(Sensor ** const sensors) {
                     }
                 }
                 break;
+            case PACKET_FEATURE_FLAGS:
+                if (len < 16) {
+                    udpClientLogger.warn("Invalid feature flags packet");
+                    break;
+                }
+                if (serverFeatureFlags.available) break;
+                serverFeatureFlags.available = true;
+
+                uint32_t flags = ntohl(*((uint32_t*)&incomingPacket[12]));
+                serverFeatureFlags.protocolBundleSupport =
+                    flags & FEATURE_SERVER_PROTOCOL_BUNDLE_SUPPORT;
+                if (serverFeatureFlags.protocolBundleSupport) {
+                    udpClientLogger.debug("Protocol: bundle support enabled");
+                }
+                break;
             }
         }
         //while(Serial.available()) {
@@ -694,9 +761,11 @@ void ServerConnection::update(Sensor ** const sensors) {
         }
     }
         
-    if(!connected) {
+    if (!connected) {
         connect();
+        return;
     } else {
         updateSensorState(sensors);
     }
+    requestFeatureFlags();
 }

@@ -37,4 +37,17 @@ namespace ServerConnection {
     bool isConnected();
 }
 
+struct ServerFeatureFlags {
+    bool available = false;
+    bool protocolBundleSupport = false;
+
+    void reset() {
+        memset(this, 0, sizeof(ServerFeatureFlags));
+    }
+};
+
+typedef enum {
+    FEATURE_SERVER_PROTOCOL_BUNDLE_SUPPORT = 1 << 0,
+} server_feature_flags;
+
 #endif // SLIMEVR_UDP_CLIENT_H_

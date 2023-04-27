@@ -227,17 +227,25 @@ namespace SlimeVR
             }
             #endif
 
-            if (!ServerConnection::isConnected())
-            {
-                return;
-            }
-
             // Send updates
+            if (!ServerConnection::isConnected()) return;
+            
+            bool shouldSend = false;
+            for (auto sensor : m_Sensors) {
+                if (sensor->isWorking() && sensor->hasNewData()) {
+                    shouldSend = true;
+                    break;
+                }
+            }
+            if (!shouldSend) return;
+
+            DataTransfer::beginBundle();
             for (auto sensor : m_Sensors) {
                 if (sensor->isWorking()) {
                     sensor->sendData();
                 }
             }
+            DataTransfer::endBundle();
         }
 
     }
