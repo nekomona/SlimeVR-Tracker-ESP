@@ -129,7 +129,7 @@ namespace DataTransfer {
 
     void sendFloat(float f);
     void sendByte(uint8_t c);
-    void sendInt(int i);
+    void sendInt(uint32_t i);
     void sendLong(uint64_t l);
     void sendBytes(const uint8_t * c, size_t length);
     void sendShortString(const char * str);

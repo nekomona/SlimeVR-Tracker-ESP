@@ -29,7 +29,7 @@
 #define TIMEOUT 3000UL
 
 WiFiUDP Udp;
-unsigned char incomingPacket[128]; // buffer for incoming packets
+unsigned char packetBuf[128];
 uint64_t packetNumber = 0;
 unsigned char handshake[12] = {0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -51,6 +51,7 @@ size_t serialLength = 0;
 unsigned char buf[8];
 
 bool isBundle = false;
+uint16_t bundlePacketPosition = 0;
 
 // TODO: Cleanup with proper classes
 SlimeVR::Logging::Logger udpClientLogger("UDPClient");
@@ -86,10 +87,30 @@ T convert_chars(unsigned char * const src)
     return un.v;
 }
 
+size_t write(const uint8_t *buffer, size_t size) {
+    if (isBundle) {
+        if (bundlePacketPosition + size > sizeof(packetBuf)) {
+            return 0;
+        }
+        memcpy(packetBuf + bundlePacketPosition, buffer, size);
+        bundlePacketPosition += size;
+        return size;
+    }
+    return Udp.write(buffer, size);
+}
+
+size_t write(uint8_t byte) {
+    return write(&byte, 1);
+}
+
 namespace DataTransfer {
 
     bool beginPacket() {
-        if (isBundle) return true;
+        if (isBundle) {
+            bundlePacketPosition = 0;
+            return true;
+        }
+
         int r = Udp.beginPacket(host, port);
         if(r == 0) {
             // Print error
@@ -98,7 +119,13 @@ namespace DataTransfer {
     }
 
     bool endPacket() {
-        if (isBundle) return true;
+        if (isBundle) {
+            Udp.write(bundlePacketPosition >> 8);
+            Udp.write(bundlePacketPosition & 0xFF);
+            Udp.write(packetBuf, bundlePacketPosition);
+            return true;
+        }
+
         int r = Udp.endPacket();
         if(r == 0) {
             // Print error
@@ -117,18 +144,19 @@ namespace DataTransfer {
         }
         return false;
     }
+
     bool endBundle() {
-        if (!serverFeatureFlags.protocolBundleSupport) return false;
         if (!isBundle) return false;
         isBundle = false;
+        if (!serverFeatureFlags.protocolBundleSupport) return false;
         return endPacket();
     }
 
     void sendPacketType(uint8_t type) {
-        Udp.write(0);
-        Udp.write(0);
-        Udp.write(0);
-        Udp.write(type);
+        write(0);
+        write(0);
+        write(0);
+        write(type);
     }
 
     void sendPacketNumber() {
@@ -138,23 +166,23 @@ namespace DataTransfer {
     }
 
     void sendFloat(float f) {
-        Udp.write(convert_to_chars(f, buf), sizeof(f));
+        write(convert_to_chars(f, buf), sizeof(f));
     }
 
     void sendByte(uint8_t c) {
-        Udp.write(&c, 1);
+        write(&c, 1);
     }
 
-    void sendInt(int i) {
-        Udp.write(convert_to_chars(i, buf), sizeof(i));
+    void sendInt(uint32_t i) {
+        write(convert_to_chars(i, buf), sizeof(i));
     }
 
     void sendLong(uint64_t l) {
-        Udp.write(convert_to_chars(l, buf), sizeof(l));
+        write(convert_to_chars(l, buf), sizeof(l));
     }
 
     void sendBytes(const uint8_t * c, size_t length) {
-        Udp.write(c, length);
+        write(c, length);
     }
 
     void sendShortString(const char * str) {
@@ -594,7 +622,7 @@ namespace ServerConnection {
 
 void ServerConnection::returnLastPacket(int len) {
     if(DataTransfer::beginPacket()) {
-        DataTransfer::sendBytes(incomingPacket, len);
+        DataTransfer::sendBytes(packetBuf, len);
         DataTransfer::endPacket();
     }
 }
@@ -630,7 +658,7 @@ void ServerConnection::connect()
         if (packetSize)
         {
             // receive incoming UDP packets
-            int len = Udp.read(incomingPacket, sizeof(incomingPacket));
+            int len = Udp.read(packetBuf, sizeof(packetBuf));
             
 #ifdef DEBUG_NETWORK
             udpClientLogger.trace("Received %d bytes from %s, port %d", packetSize, Udp.remoteIP().toString().c_str(), Udp.remotePort());
@@ -638,7 +666,7 @@ void ServerConnection::connect()
 #endif
 
             // Handshake is different, it has 3 in the first byte, not the 4th, and data starts right after
-            switch (incomingPacket[0])
+            switch (packetBuf[0])
             {
             case PACKET_HANDSHAKE:
                 // Assume handshake successful, don't check it
@@ -689,7 +717,7 @@ void ServerConnection::update(Sensor ** const sensors) {
         if (packetSize)
         {
             lastPacketMs = millis();
-            int len = Udp.read(incomingPacket, sizeof(incomingPacket));
+            int len = Udp.read(packetBuf, sizeof(packetBuf));
             // receive incoming UDP packets
 
 #ifdef DEBUG_NETWORK
@@ -697,7 +725,7 @@ void ServerConnection::update(Sensor ** const sensors) {
             udpClientLogger.traceArray("UDP packet contents: ", incomingPacket, len);
 #endif
 
-            switch (convert_chars<int>(incomingPacket))
+            switch (convert_chars<int>(packetBuf))
             {
             case PACKET_RECEIVE_HEARTBEAT:
                 Network::sendHeartbeat();
@@ -724,8 +752,8 @@ void ServerConnection::update(Sensor ** const sensors) {
                     break;
                 }
                 for (int i = 0; i < MAX_IMU_COUNT; i++) {
-                    if (incomingPacket[4] == sensors[i]->getSensorId()) {
-                        sensorStateNotified[i] = incomingPacket[5];
+                    if (packetBuf[4] == sensors[i]->getSensorId()) {
+                        sensorStateNotified[i] = packetBuf[5];
                         break;
                     }
                 }
@@ -738,7 +766,7 @@ void ServerConnection::update(Sensor ** const sensors) {
                 if (serverFeatureFlags.available) break;
                 serverFeatureFlags.available = true;
 
-                uint32_t flags = ntohl(*((uint32_t*)&incomingPacket[12]));
+                uint32_t flags = ntohl(*((uint32_t*)&packetBuf[12]));
                 serverFeatureFlags.protocolBundleSupport =
                     flags & FEATURE_SERVER_PROTOCOL_BUNDLE_SUPPORT;
                 if (serverFeatureFlags.protocolBundleSupport) {

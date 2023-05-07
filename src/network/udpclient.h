@@ -47,7 +47,7 @@ struct ServerFeatureFlags {
 };
 
 typedef enum {
-    FEATURE_SERVER_PROTOCOL_BUNDLE_SUPPORT = 1 << 0,
+    FEATURE_SERVER_PROTOCOL_BUNDLE_SUPPORT = 1 << 1,
 } server_feature_flags;
 
 #endif // SLIMEVR_UDP_CLIENT_H_
