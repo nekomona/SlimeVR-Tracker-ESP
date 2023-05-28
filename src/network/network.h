@@ -30,7 +30,7 @@
 #include "wifiprovisioning.h"
 
 namespace Network {
-    void update(Sensor * const sensor, Sensor * const sensor2);
+    void update(Sensor ** const sensors);
     void setUp();
 }
 

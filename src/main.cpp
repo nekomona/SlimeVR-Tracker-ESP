@@ -113,7 +113,7 @@ void loop()
 {
     SerialCommands::update();
     OTA::otaUpdate();
-    Network::update(sensorManager.getFirst(), sensorManager.getSecond());
+    Network::update(sensorManager.getSensors());
     sensorManager.update();
     battery.Loop();
     ledManager.update();
