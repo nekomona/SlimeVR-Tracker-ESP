@@ -34,7 +34,9 @@
 #include "ErroneousSensor.h"
 #include "sensoraddresses.h"
 
-#include "driver/i2c.h"
+#if ESP32
+    #include "driver/i2c.h"
+#endif
 
 namespace SlimeVR
 {
