@@ -71,6 +71,13 @@ namespace SlimeVR
             uint8_t activeSDA = 0;
             bool running = false;
             void swapI2C(uint8_t scl, uint8_t sda);
+        #if ESP32
+            TaskHandle_t sensorTask = NULL;
+            static void updateSensors(void * pvParameters);
+        public:
+            void acquireWrite();
+            void releaseWrite();
+        #endif
         };
     }
 }

@@ -170,8 +170,10 @@ void MPU6050Sensor::motionLoop()
 
         if (!OPTIMIZE_UPDATES || !lastQuatSent.equalsWithEpsilon(quaternion))
         {
+            xSemaphoreTake(updateMutex, portMAX_DELAY);
             newData = true;
             lastQuatSent = quaternion;
+            xSemaphoreGive(updateMutex);
         }
     }
 }

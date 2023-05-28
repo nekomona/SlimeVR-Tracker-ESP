@@ -30,9 +30,25 @@ uint8_t Sensor::getSensorState() {
 }
 
 void Sensor::sendData() {
+#if ESP32
+    Quat lquat;
+    xSemaphoreTake(updateMutex, portMAX_DELAY);
     if(newData) {
         newData = false;
+        lquat = quaternion;
+        xSemaphoreGive(updateMutex);
+    } else {
+        xSemaphoreGive(updateMutex);
+        return;
+    }
+
+    {
+        Network::sendRotationData(&lquat, DATA_TYPE_NORMAL, calibrationAccuracy, sensorId);
+#else 
+    if (newData) {
+        newData = false;
         Network::sendRotationData(&quaternion, DATA_TYPE_NORMAL, calibrationAccuracy, sensorId);
+#endif
 
 #if SEND_ACCELERATION
         {

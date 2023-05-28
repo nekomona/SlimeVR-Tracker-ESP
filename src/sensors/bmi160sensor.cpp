@@ -427,10 +427,12 @@ void BMI160Sensor::motionLoop() {
 
             if (!OPTIMIZE_UPDATES || !lastQuatSent.equalsWithEpsilon(quaternion))
             {
+                xSemaphoreTake(updateMutex, portMAX_DELAY);
                 newData = true;
                 lastQuatSent = quaternion;
+                xSemaphoreGive(updateMutex);
             }
-
+            
             optimistic_yield(100);
         }
     }

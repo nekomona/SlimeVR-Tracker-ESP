@@ -91,10 +91,14 @@ protected:
     float linearAcceleration[3]{};
 
     SlimeVR::Logging::Logger m_Logger;
-    
+
 public:
     uint8_t sclPin = 0;
     uint8_t sdaPin = 0;
+
+    #if ESP32
+        SemaphoreHandle_t updateMutex = NULL;
+    #endif
 
 private:
     void printTemperatureCalibrationUnsupported();
