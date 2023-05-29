@@ -62,6 +62,7 @@ namespace SlimeVR
 
         private:
             SlimeVR::Logging::Logger m_Logger;
+            uint32_t sendRequestTime = 0;
 
             Sensor *m_Sensors[MAX_IMU_COUNT];
 			int getIMUParamCount(int imu_type);

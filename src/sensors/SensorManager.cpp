@@ -230,15 +230,30 @@ namespace SlimeVR
             // Send updates
             if (!ServerConnection::isConnected()) return;
             
-            bool shouldSend = false;
+            int sendCount = 0;
             for (auto sensor : m_Sensors) {
                 if (sensor->isWorking() && sensor->hasNewData()) {
-                    shouldSend = true;
-                    break;
+                    sendCount ++;
                 }
             }
-            if (!shouldSend) return;
+            if (sendCount == 0) return;
 
+            if (sendCount < MAX_IMU_COUNT) {
+                // Some sensor have data to send, but not all sensors
+                // delay sending unting all sensors are prepared or timeout
+                uint32_t now = micros();
+                constexpr uint32_t sendInterval = 10000;
+                uint32_t elapsed = now - sendRequestTime;
+                
+                if (sendRequestTime == 0) {
+                    sendRequestTime = now;
+                    return; // No data waiting to be sent, start counting
+                } else if (elapsed < sendInterval) {
+                    return; // Timeout not reached
+                }
+            }
+            sendRequestTime = 0;
+            
             DataTransfer::beginBundle();
             for (auto sensor : m_Sensors) {
                 if (sensor->isWorking()) {
