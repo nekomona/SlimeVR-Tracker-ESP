@@ -34,13 +34,16 @@
 #define IMU_ROTATION DEG_270
 #define SECOND_IMU_ROTATION DEG_270
 
-#define MAX_IMU_COUNT 6
+#define MAX_IMU_COUNT 8
 
-#define IMU_DESC_STR  IMU_MPU6050(0x68,IMU_ROTATION,19,18);\
-                      IMU_MPU6050(0x68,IMU_ROTATION,23,22);\
-                      IMU_MPU6050(0x69,IMU_ROTATION,23,22);\
-                      IMU_BMI160(0x69,IMU_ROTATION,32,33);\
-                      IMU_BMI160(0x68,IMU_ROTATION,32,33);
+#define IMU_DESC_STR  IMU_MPU6050(0x68,IMU_ROTATION,4,5);\
+                      IMU_MPU6050(0x69,IMU_ROTATION,4,5);\
+                      IMU_MPU6050(0x68,IMU_ROTATION,6,7);\
+                      IMU_MPU6050(0x69,IMU_ROTATION,6,7);\
+                      IMU_MPU6050(0x68,IMU_ROTATION,15,16);\
+                      IMU_MPU6050(0x69,IMU_ROTATION,15,16);\
+                      IMU_MPU6050(0x68,IMU_ROTATION,17,18);\
+                      IMU_MPU6050(0x69,IMU_ROTATION,17,18);
 
 #ifndef IMU_DESC_STR
 #define IMU_DESC_STR IMU(PRIMARY_IMU_ADDRESS_ONE,IMU_ROTATION,PIN_IMU_SCL,PIN_IMU_SDA,PIN_IMU_INT);\
@@ -177,11 +180,11 @@
   #define LED_PIN LED_OFF  // RGB LED Protocol would need to be implementetet did not brother for the test, because the board ideal for tracker ifself
 //  #define LED_INVERTED false
 #elif BOARD == BOARD_LOLIN_S2_MINI
-  #define PIN_IMU_SDA 18
-  #define PIN_IMU_SCL 19
-  #define PIN_IMU_INT 16
-  #define PIN_IMU_INT_2 5
-  #define PIN_BATTERY_LEVEL 17
+  #define PIN_IMU_SDA 5
+  #define PIN_IMU_SCL 4
+  #define PIN_IMU_INT 8
+  #define PIN_IMU_INT_2 3
+  #define PIN_BATTERY_LEVEL 11
   #define LED_PIN 2
   #define LED_INVERTED false
 #endif
