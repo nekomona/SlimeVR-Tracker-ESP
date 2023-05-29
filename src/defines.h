@@ -25,14 +25,22 @@
 // https://docs.slimevr.dev/firmware/configuring-project.html#2-configuring-definesh
 // ================================================
 
+#define BOARD_LOLIN_S2_MINI 128
+
 // Set parameters of IMU and board used
-#define IMU IMU_BNO085
+#define IMU IMU_MPU6050
 #define SECOND_IMU IMU
-#define BOARD BOARD_SLIMEVR
+#define BOARD BOARD_LOLIN_S2_MINI
 #define IMU_ROTATION DEG_270
 #define SECOND_IMU_ROTATION DEG_270
 
-#define MAX_IMU_COUNT 2
+#define MAX_IMU_COUNT 6
+
+#define IMU_DESC_STR  IMU_MPU6050(0x68,IMU_ROTATION,19,18);\
+                      IMU_MPU6050(0x68,IMU_ROTATION,23,22);\
+                      IMU_MPU6050(0x69,IMU_ROTATION,23,22);\
+                      IMU_BMI160(0x69,IMU_ROTATION,32,33);\
+                      IMU_BMI160(0x68,IMU_ROTATION,32,33);
 
 #ifndef IMU_DESC_STR
 #define IMU_DESC_STR IMU(PRIMARY_IMU_ADDRESS_ONE,IMU_ROTATION,PIN_IMU_SCL,PIN_IMU_SDA,PIN_IMU_INT);\
