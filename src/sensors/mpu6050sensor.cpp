@@ -139,7 +139,8 @@ void MPU6050Sensor::motionLoop()
         imu.dmpGetQuaternion(&rawQuat, fifoBuffer);
         
         float rawQwxyz[4] = {rawQuat.w, rawQuat.x, rawQuat.y, rawQuat.z};
-        sfusion.getGravityVec(rawQwxyz);
+        sfusion.updateQuaternion(rawQwxyz);
+        sfusion.getGravityVec();
 
         quaternion.set(-rawQuat.y, rawQuat.x, rawQuat.z, rawQuat.w);
         quaternion *= sensorOffset;
