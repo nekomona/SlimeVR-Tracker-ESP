@@ -66,22 +66,17 @@ namespace SerialCommands {
             statusManager.getStatus(),
             WiFiNetwork::getWiFiState()
         );
-        Sensor* sensor1 = sensorManager.getFirst();
-        Sensor* sensor2 = sensorManager.getSecond();
-        logger.info(
-            "Sensor 1: %s (%.3f %.3f %.3f %.3f) is working: %s, had data: %s",
-            getIMUNameByType(sensor1->getSensorType()),
-            UNPACK_QUATERNION(sensor1->getQuaternion()),
-            sensor1->isWorking() ? "true" : "false",
-            sensor1->hadData ? "true" : "false"
-        );
-        logger.info(
-            "Sensor 2: %s (%.3f %.3f %.3f %.3f) is working: %s, had data: %s",
-            getIMUNameByType(sensor2->getSensorType()),
-            UNPACK_QUATERNION(sensor2->getQuaternion()),
-            sensor2->isWorking() ? "true" : "false",
-            sensor2->hadData ? "true" : "false"
-        );
+        Sensor** const sensors = sensorManager.getSensors();
+        std::for_each_n(sensors, MAX_IMU_COUNT, [](Sensor* sensor) {
+            logger.info(
+                "Sensor[%d]: %s (%.3f %.3f %.3f %.3f) is working: %s, had data: %s",
+                sensor->getSensorId(),
+                getIMUNameByType(sensor->getSensorType()),
+                UNPACK_QUATERNION(sensor->getQuaternion()),
+                sensor->isWorking() ? "true" : "false",
+                sensor->hadData ? "true" : "false"
+            );
+        });
     }
 
     void cmdGet(CmdParser * parser) {
@@ -145,16 +140,16 @@ namespace SerialCommands {
                 statusManager.getStatus(),
                 WiFiNetwork::getWiFiState()
             );
-            Sensor* sensor1 = sensorManager.getFirst();
-            sensor1->motionLoop();
+            Sensor* sensor0 = sensorManager.getSensors()[0];
+            sensor0->motionLoop();
             logger.info(
-                "[TEST] Sensor 1: %s (%.3f %.3f %.3f %.3f) is working: %s, had data: %s",
-                getIMUNameByType(sensor1->getSensorType()),
-                UNPACK_QUATERNION(sensor1->getQuaternion()),
-                sensor1->isWorking() ? "true" : "false",
-                sensor1->hadData ? "true" : "false"
+                "[TEST] Sensor[0]: %s (%.3f %.3f %.3f %.3f) is working: %s, had data: %s",
+                getIMUNameByType(sensor0->getSensorType()),
+                UNPACK_QUATERNION(sensor0->getQuaternion()),
+                sensor0->isWorking() ? "true" : "false",
+                sensor0->hadData ? "true" : "false"
             );
-            if(!sensor1->hadData) {
+            if(!sensor0->hadData) {
                 logger.error("[TEST] Sensor 1 didn't send any data yet!");
             } else {
                 logger.info("[TEST] Sensor 1 sent some data, looks working.");
@@ -195,20 +190,28 @@ namespace SerialCommands {
     void cmdTemperatureCalibration(CmdParser* parser) {
         if (parser->getParamCount() > 1) {
             if (parser->equalCmdParam(1, "PRINT")) {
-                sensorManager.getFirst()->printTemperatureCalibrationState();
-                sensorManager.getSecond()->printTemperatureCalibrationState();
+                Sensor ** const sensors = sensorManager.getSensors();
+                std::for_each_n(sensors, MAX_IMU_COUNT, [](Sensor* sensor) {
+                    sensor->printTemperatureCalibrationState();
+                });
                 return;
             } else if (parser->equalCmdParam(1, "DEBUG")) {
-                sensorManager.getFirst()->printDebugTemperatureCalibrationState();
-                sensorManager.getSecond()->printDebugTemperatureCalibrationState();
+                Sensor ** const sensors = sensorManager.getSensors();
+                std::for_each_n(sensors, MAX_IMU_COUNT, [](Sensor* sensor) {
+                    sensor->printDebugTemperatureCalibrationState();
+                });
                 return;
             } else if (parser->equalCmdParam(1, "RESET")) {
-                sensorManager.getFirst()->resetTemperatureCalibrationState();
-                sensorManager.getSecond()->resetTemperatureCalibrationState();
+                Sensor ** const sensors = sensorManager.getSensors();
+                std::for_each_n(sensors, MAX_IMU_COUNT, [](Sensor* sensor) {
+                    sensor->resetTemperatureCalibrationState();
+                });
                 return;
             } else if (parser->equalCmdParam(1, "SAVE")) {
-                sensorManager.getFirst()->saveTemperatureCalibration();
-                sensorManager.getSecond()->saveTemperatureCalibration();
+                Sensor ** const sensors = sensorManager.getSensors();
+                std::for_each_n(sensors, MAX_IMU_COUNT, [](Sensor* sensor) {
+                    sensor->saveTemperatureCalibration();
+                });
                 return;
             }
         }

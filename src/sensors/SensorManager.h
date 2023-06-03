@@ -51,13 +51,11 @@ namespace SlimeVR
                 }
             }
 
-			void setup();
-			void postSetup();
+            void setup();
+            void postSetup();
 
             void update();
-
-            Sensor *getFirst() { return m_Sensors[0]; };
-            Sensor *getSecond() { return m_Sensors[1]; };
+            
             Sensor  ** const getSensors() { return m_Sensors; };
 
         private:
@@ -65,8 +63,7 @@ namespace SlimeVR
             uint32_t sendRequestTime = 0;
 
             Sensor *m_Sensors[MAX_IMU_COUNT];
-			int getIMUParamCount(int imu_type);
-			Sensor* buildSensor(String& desc, uint8_t sensorID);
+            Sensor* buildSensor(uint8_t sensorID, uint8_t imuType, uint8_t address, float rotation, uint8_t sclPin, uint8_t sdaPin, int extraParam = 0);
             
             uint8_t activeSCL = 0;
             uint8_t activeSDA = 0;

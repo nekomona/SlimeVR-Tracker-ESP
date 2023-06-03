@@ -23,7 +23,6 @@
 
 #include "SensorManager.h"
 #include <i2cscan.h>
-#include <StreamString.h>
 #include "network/network.h"
 #include "bno055sensor.h"
 #include "bno080sensor.h"
@@ -42,50 +41,14 @@ namespace SlimeVR
 {
     namespace Sensors
     {
-        #define STR_WRAP(STR) #STR
-        #define STR_WRAP2(STR) STR_WRAP(STR)
-        #define IMU_DESC_STR_VAL STR_WRAP2(IMU_DESC_STR)
-
-        // Sensor descriptor string format:
-        // imuType(address,rotation,sclpin,sdapin,intpin);
-
-        int SensorManager::getIMUParamCount(int imu_type)
+        Sensor* SensorManager::buildSensor(uint8_t sensorID, uint8_t imuType, uint8_t address, float rotation, uint8_t sclPin, uint8_t sdaPin, int extraParam)
         {
-            switch (imu_type) {
-            case IMU_BNO080: case IMU_BNO085: case IMU_BNO086:
-                return 6;
-            default: case IMU_BNO055: case IMU_MPU9250: case IMU_BMI160: case IMU_MPU6500: case IMU_MPU6050: case IMU_ICM20948:
-                return 5;
-            }
-        }
-
-        Sensor* SensorManager::buildSensor(String &desc, uint8_t sensorID)
-        {
-            // First parse descritor and check variables
-            uint8_t imuType = 0;
-            uint8_t address = 0;
-            float rotation = 0.0f;
-            uint8_t sclPin = 0;
-            uint8_t sdaPin = 0;
-            uint8_t intPin = 0;
-
-            int nparam = sscanf(desc.c_str(), "%hhu(0x%hhx,%f,%hhu,%hhu,%hhu)",
-                                            &imuType, &address, &rotation, &sclPin, &sdaPin, &intPin);
-
-            m_Logger.trace("Building IMU with: id=%d, nparam=%d,\n\
-                            imuType=0x%02X, address=%d, rotation=%f,\n\
-                            sclPin=%d, sdaPin=%d, intPin=%d",
-                            sensorID, nparam,
+            m_Logger.trace("Building IMU with: id=%d,\n\
+                            imuType=0x%02X, address=0x%02X, rotation=%f,\n\
+                            sclPin=%d, sdaPin=%d, extraParam=%d",
+                            sensorID,
                             imuType, address, rotation,
-                            sclPin, sdaPin, intPin);
-            
-            if (nparam < 1 || nparam < getIMUParamCount(imuType)) {
-                m_Logger.error("IMU %d have only %d parameters (expect %d) from desc %s",
-                                sensorID, nparam, getIMUParamCount(imuType), desc.c_str() );
-            }
-            
-            // Convert degrees to angle
-            rotation *= PI / 180.0f;
+                            sclPin, sdaPin, extraParam);
 
             // Now start detecting and building the IMU
             Sensor* sensor = NULL;
@@ -103,7 +66,11 @@ namespace SlimeVR
 
             switch (imuType) {
             case IMU_BNO080: case IMU_BNO085: case IMU_BNO086:
+                // Extra param used as interrupt pin
+                {
+                uint8_t intPin = extraParam;
                 sensor = new BNO080Sensor(sensorID, imuType, address, rotation, sclPin, sdaPin, intPin);
+                }
                 break;
             case IMU_BNO055:
                 sensor = new BNO055Sensor(sensorID, address, rotation, sclPin, sdaPin);
@@ -112,7 +79,17 @@ namespace SlimeVR
                 sensor = new MPU9250Sensor(sensorID, address, rotation, sclPin, sdaPin);
                 break;
             case IMU_BMI160:
-                sensor = new BMI160Sensor(sensorID, address, rotation, sclPin, sdaPin);
+                // Extra param used as axis remap descriptor
+                {
+                int axisRemap = extraParam;
+                // Valid remap will use all axes, so there will be non-zero term in upper 9 mag bits
+                // Used to avoid default INT_PIN misinterpreted as axis mapping
+                if (axisRemap < 256) {
+                    sensor = new BMI160Sensor(sensorID, address, rotation, sclPin, sdaPin);
+                } else {
+                    sensor = new BMI160Sensor(sensorID, address, rotation, sclPin, sdaPin, axisRemap);
+                }
+                }
                 break;
             case IMU_MPU6500: case IMU_MPU6050:
                 sensor = new MPU6050Sensor(sensorID, imuType, address, rotation, sclPin, sdaPin);
@@ -164,21 +141,27 @@ namespace SlimeVR
             activeSCL = PIN_IMU_SCL;
             activeSDA = PIN_IMU_SDA;
 
-            // Divide sensor from descriptor string by semicolon
-            StreamString mstr;
-            mstr.print(IMU_DESC_STR_VAL);
-
-            String desc;
             uint8_t sensorID = 0;
-            while (mstr.available() && sensorID < MAX_IMU_COUNT) {
-                desc = mstr.readStringUntil(';');
-                if (desc.endsWith(")")) { // Verify the end of descriptor
-                    Sensor* sensor = buildSensor(desc, sensorID);
-                    m_Sensors[sensorID] = sensor;
-                    sensorID++;
-                } else {
-                    m_Logger.error("Bad sensor descriptor %s\n", desc.c_str());
-                }
+            uint8_t activeSensorCount = 0;
+#define IMU_DESC_ENTRY(...)                                          \
+            {                                                        \
+                Sensor* sensor = buildSensor(sensorID, __VA_ARGS__); \
+                m_Sensors[sensorID] = sensor;                        \
+                sensorID++;                                          \
+                if (sensor->isWorking()) {                           \
+                    m_Logger.info("Sensor %d configured", sensorID); \
+                    activeSensorCount++;                             \
+                }                                                    \
+            }
+            // Apply descriptor list and expand to entrys
+            IMU_DESC_LIST;
+
+#undef IMU_DESC_ENTRY
+            m_Logger.info("%d sensor(s) configured", activeSensorCount);
+            // Check and scan i2c if no sensors active
+            if (activeSensorCount == 0) {
+                m_Logger.error("Can't find I2C device on provided addresses, scanning for all I2C devices and returning");
+                I2CSCAN::scani2cports();
             }
         }
 
