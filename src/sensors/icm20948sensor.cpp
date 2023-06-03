@@ -484,25 +484,15 @@ void ICM20948Sensor::calculateAccelerationWithoutGravity(Quat *quaternion)
     {
         if((dmpData.header & DMP_header_bitmap_Accel) > 0)
         {
-            this->linearAcceleration[0] = (float)this->dmpData.Raw_Accel.Data.X;
-            this->linearAcceleration[1] = (float)this->dmpData.Raw_Accel.Data.Y;
-            this->linearAcceleration[2] = (float)this->dmpData.Raw_Accel.Data.Z;
+            sfusion.updateQuaternion(*quaternion);
 
-            // get the component of the acceleration that is gravity
-            float gravity[3];
-            gravity[0] = 2 * ((-quaternion->x) * (-quaternion->z) - quaternion->w * quaternion->y);
-            gravity[1] = -2 * (quaternion->w * (-quaternion->x) + quaternion->y * (-quaternion->z));
-            gravity[2] = quaternion->w * quaternion->w - quaternion->x * quaternion->x - quaternion->y * quaternion->y + quaternion->z * quaternion->z;
+            float Axyz[3] = {(float)this->dmpData.Raw_Accel.Data.X * ASCALE_4G,
+                             (float)this->dmpData.Raw_Accel.Data.Y * ASCALE_4G,
+                             (float)this->dmpData.Raw_Accel.Data.Z * ASCALE_4G
+                            };
+            sfusion.updateAcc(Axyz);
 
-            // subtract gravity from the acceleration vector
-            this->linearAcceleration[0] -= gravity[0] * ACCEL_SENSITIVITY_4G;
-            this->linearAcceleration[1] -= gravity[1] * ACCEL_SENSITIVITY_4G;
-            this->linearAcceleration[2] -= gravity[2] * ACCEL_SENSITIVITY_4G;
-
-            // finally scale the acceleration values to mps2
-            this->linearAcceleration[0] *= ASCALE_4G;
-            this->linearAcceleration[1] *= ASCALE_4G;
-            this->linearAcceleration[2] *= ASCALE_4G;
+            sfusion.getLinearAcc(linearAcceleration);
         }
     }
     #endif

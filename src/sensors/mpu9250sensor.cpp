@@ -27,17 +27,13 @@
 #include "calibration.h"
 #include "magneto1.4.h"
 #include "GlobalVars.h"
-// #include "mahony.h"
-// #include "madgwick.h"
-#if not (defined(_MAHONY_H_) || defined(_MADGWICK_H_))
+#if MPU_USE_DMPMAG
 #include "dmpmag.h"
 #endif
 
 //#if defined(_MAHONY_H_) || defined(_MADGWICK_H_)
 constexpr float gscale = (250. / 32768.0) * (PI / 180.0); //gyro default 250 LSB per d/s -> rad/s
 //#endif
-
-#define MAG_CORR_RATIO 0.02
 
 #define ACCEL_SENSITIVITY_2G 16384.0f
 
@@ -94,7 +90,7 @@ void MPU9250Sensor::motionSetup() {
         }
     }
 
-#if not (defined(_MAHONY_H_) || defined(_MADGWICK_H_))
+#if MPU_USE_DMPMAG
     uint8_t devStatus = imu.dmpInitialize();
     if(devStatus == 0){
         ledManager.pattern(50, 50, 5);
@@ -128,9 +124,8 @@ void MPU9250Sensor::motionSetup() {
     imu.setZGyroFIFOEnabled(true);
     imu.setSlave0FIFOEnabled(true);
 
-    // TODO: set a rate we prefer instead of getting the current rate from the device.
-    deltat = 1.0 / 1000.0 * (1 + imu.getRate());
-    //imu.setRate(blah);
+    // Set a rate we prefer 
+    imu.setRate(MPU9250_SAMPLE_DIV); // 8khz / (1 + MPU9250_SAMPLE_DIV)
 
     imu.resetFIFO();
     imu.setFIFOEnabled(true);
@@ -152,7 +147,7 @@ void MPU9250Sensor::motionLoop() {
     }
 #endif
 
-#if not (defined(_MAHONY_H_) || defined(_MADGWICK_H_))
+#if MPU_USE_DMPMAG
     // Update quaternion
     if(!dmpReady)
         return;
@@ -160,53 +155,30 @@ void MPU9250Sensor::motionLoop() {
     uint8_t dmpPacket[packetSize];
     if(!imu.GetCurrentFIFOPacket(dmpPacket, packetSize)) return;
     if(imu.dmpGetQuaternion(&rawQuat, dmpPacket)) return; // FIFO CORRUPTED
-    Quat quat(-rawQuat.y,rawQuat.x,rawQuat.z,rawQuat.w);
+    
+    sfusion.updateQuaternion(rawQuat);
 
     int16_t temp[3];
     imu.getMagnetometer(&temp[0], &temp[1], &temp[2]);
     parseMagData(temp);
 
-    if (Mxyz[0] == 0.0f && Mxyz[1] == 0.0f && Mxyz[2] == 0.0f) {
-        return;
-    }
+    sfusion.updateMag(Mxyz);
 
-    VectorFloat grav;
-    imu.dmpGetGravity(&grav, &rawQuat);
-
-    float Grav[] = {grav.x, grav.y, grav.z};
-
-    if (correction.length_squared() == 0.0f) {
-        correction = getCorrection(Grav, Mxyz, quat);
-    } else {
-        Quat newCorr = getCorrection(Grav, Mxyz, quat);
-
-        if(!__isnanf(newCorr.w)) {
-            correction = correction.slerp(newCorr, MAG_CORR_RATIO);
-        }
-    }
+    quaternion = sfusion.getQuaternionQuat();
 
 #if SEND_ACCELERATION
     {
-        // dmpGetGravity returns a value that is the percentage of gravity that each axis is experiencing.
-        // dmpGetLinearAccel by default compensates this to be in 4g mode because of that
-        // we need to multiply by the gravity scale by two to convert to 2g mode ()
-        grav.x *= 2;
-        grav.y *= 2;
-        grav.z *= 2;
+        int16_t atemp[3];
+        this->imu.dmpGetAccel(atemp, dmpPacket);
+        parseAccelData(atemp);
 
-        this->imu.dmpGetAccel(&this->rawAccel, dmpPacket);
-        this->imu.dmpGetLinearAccel(&this->rawAccel, &this->rawAccel, &grav);
-
-        // convert acceleration to m/s^2 (implicitly casts to float)
-        this->linearAcceleration[0] = this->rawAccel.x * ASCALE_2G;
-        this->linearAcceleration[1] = this->rawAccel.y * ASCALE_2G;
-        this->linearAcceleration[2] = this->rawAccel.z * ASCALE_2G;
+        sfusion.updateAcc(Axyz);
+        
+        sfusion.getLinearAcc(linearAcceleration);
     }
 #endif
 
-    quaternion = correction * quat;
 #else
-
     union fifo_sample_raw buf;
     uint16_t remaining_samples;
     // TODO: would it be faster to read multiple samples at once
@@ -222,15 +194,14 @@ void MPU9250Sensor::motionLoop() {
         // TODO: monitor remaining_samples to ensure that the number is going down, not up.
         // remaining_samples
 
-        #if defined(_MAHONY_H_)
-        mahonyQuaternionUpdate(q, Axyz[0], Axyz[1], Axyz[2], Gxyz[0], Gxyz[1], Gxyz[2], Mxyz[0], Mxyz[1], Mxyz[2], deltat * 1.0e-6);
-        #elif defined(_MADGWICK_H_)
-        madgwickQuaternionUpdate(q, Axyz[0], Axyz[1], Axyz[2], Gxyz[0], Gxyz[1], Gxyz[2], Mxyz[0], Mxyz[1], Mxyz[2], deltat * 1.0e-6);
-        #endif
+        sfusion.update9D(Axyz, Gxyz, Mxyz);
     }
-    
-    quaternion.set(-q[2], q[1], q[3], q[0]);
 
+    quaternion = sfusion.getQuaternionQuat();
+
+    #if SEND_ACCELERATION
+    sfusion.getLinearAcc(linearAcceleration);
+    #endif
 #endif
     quaternion *= sensorOffset;
 
@@ -248,7 +219,7 @@ void MPU9250Sensor::motionLoop() {
 
 void MPU9250Sensor::startCalibration(int calibrationType) {
     ledManager.on();
-#if not (defined(_MAHONY_H_) || defined(_MADGWICK_H_))
+#if MPU_USE_DMPMAG
     // with DMP, we just need mag data
     constexpr int calibrationSamples = 300;
 
@@ -425,16 +396,21 @@ void MPU9250Sensor::parseAccelData(int16_t data[3]) {
     Axyz[1] = (float)data[1];
     Axyz[2] = (float)data[2];
 
+    #if !MPU_USE_DMPMAG
     float temp[3];
+    #endif
 
     //apply offsets (bias) and scale factors from Magneto
     for (unsigned i = 0; i < 3; i++) {
+        #if !MPU_USE_DMPMAG
         temp[i] = (Axyz[i] - m_Calibration.A_B[i]);
         #if useFullCalibrationMatrix == true
             Axyz[i] = m_Calibration.A_Ainv[i][0] * temp[0] + m_Calibration.A_Ainv[i][1] * temp[1] + m_Calibration.A_Ainv[i][2] * temp[2];
         #else
             Axyz[i] = temp[i];
         #endif
+        #endif
+        Axyz[i] *= ASCALE_2G;
     }
 }
 
