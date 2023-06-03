@@ -483,7 +483,7 @@ void ICM20948Sensor::calculateAccelerationWithoutGravity(Quat *quaternion)
     #if SEND_ACCELERATION
     {
         if((dmpData.header & DMP_header_bitmap_Accel) > 0)
-        {     
+        {
             sfusion.updateQuaternion(*quaternion);
 
             float Axyz[3] = {(float)this->dmpData.Raw_Accel.Data.X * ASCALE_4G,
