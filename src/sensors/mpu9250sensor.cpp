@@ -156,10 +156,7 @@ void MPU9250Sensor::motionLoop() {
     if(!imu.GetCurrentFIFOPacket(dmpPacket, packetSize)) return;
     if(imu.dmpGetQuaternion(&rawQuat, dmpPacket)) return; // FIFO CORRUPTED
     
-    float rawQwxyz[4] = {rawQuat.w, rawQuat.x, rawQuat.y, rawQuat.z};
-    /// float rawQwxyz[4] = {rawQuat.w, -rawQuat.y, rawQuat.x, rawQuat.z};
-    sfusion.updateQuaternion(rawQwxyz);
-    sfusion.getGravityVec();
+    sfusion.updateQuaternion(rawQuat);
 
     int16_t temp[3];
     imu.getMagnetometer(&temp[0], &temp[1], &temp[2]);
@@ -167,9 +164,7 @@ void MPU9250Sensor::motionLoop() {
 
     sfusion.updateMag(Mxyz);
 
-    sensor_real_t const * qwxyz = sfusion.getQuaternion();
-
-    quaternion.set(qwxyz[1], qwxyz[2], qwxyz[3], qwxyz[0]);
+    quaternion = sfusion.getQuaternionQuat();
 
 #if SEND_ACCELERATION
     {
@@ -179,8 +174,7 @@ void MPU9250Sensor::motionLoop() {
 
         sfusion.updateAcc(Axyz);
         
-        sensor_real_t const * linAccel = sfusion.getLinearAcc();
-        std::copy(linAccel, linAccel+3, linearAcceleration);
+        sfusion.getLinearAcc(linearAcceleration);
     }
 #endif
 
@@ -203,12 +197,10 @@ void MPU9250Sensor::motionLoop() {
         sfusion.update9D(Axyz, Gxyz, Mxyz);
     }
 
-    sensor_real_t const *qwxyz = sfusion.getQuaternion();
-    quaternion.set(-qwxyz[2], qwxyz[1], qwxyz[3], qwxyz[0]);
+    quaternion = sfusion.getQuaternionQuat();
 
     #if SEND_ACCELERATION
-    sensor_real_t const * linAccel = sfusion.getLinearAcc();
-    std::copy(linAccel, linAccel+3, linearAcceleration);
+    sfusion.getLinearAcc(linearAcceleration);
     #endif
 #endif
     quaternion *= sensorOffset;

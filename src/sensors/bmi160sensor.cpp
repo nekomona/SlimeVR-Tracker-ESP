@@ -376,16 +376,9 @@ void BMI160Sensor::motionLoop() {
         if (elapsed >= sendInterval) {
             lastRotationPacketSent = now - (elapsed - sendInterval);
 
-            sensor_real_t const *qwxyz = sfusion.getQuaternion();
+            quaternion = sfusion.getQuaternionQuat();
             
-            if (isnan(qwxyz[0]) || isnan(qwxyz[1]) || isnan(qwxyz[2]) || isnan(qwxyz[3])) {
-                return;
-            }
-
-            quaternion.set(qwxyz[1], qwxyz[2], qwxyz[3], qwxyz[0]);
-            
-            sensor_real_t const * linAccel = sfusion.getLinearAcc();
-            std::copy(linAccel, linAccel+3, linearAcceleration);
+            sfusion.getLinearAcc(linearAcceleration);
 
             quaternion *= sensorOffset;
 

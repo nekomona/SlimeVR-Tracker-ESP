@@ -484,8 +484,7 @@ void ICM20948Sensor::calculateAccelerationWithoutGravity(Quat *quaternion)
     {
         if((dmpData.header & DMP_header_bitmap_Accel) > 0)
         {     
-            float qwxyz[4] = {quaternion->w, quaternion->x, quaternion->y, quaternion->z};
-            sfusion.updateQuaternion(qwxyz);
+            sfusion.updateQuaternion(*quaternion);
 
             float Axyz[3] = {(float)this->dmpData.Raw_Accel.Data.X * ASCALE_4G,
                              (float)this->dmpData.Raw_Accel.Data.Y * ASCALE_4G,
@@ -493,8 +492,7 @@ void ICM20948Sensor::calculateAccelerationWithoutGravity(Quat *quaternion)
                             };
             sfusion.updateAcc(Axyz);
 
-            sensor_real_t const * linAccel = sfusion.getLinearAcc();
-            std::copy(linAccel, linAccel+3, linearAcceleration);
+            sfusion.getLinearAcc(linearAcceleration);
         }
     }
     #endif
