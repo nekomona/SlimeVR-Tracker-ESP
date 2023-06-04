@@ -142,16 +142,16 @@ namespace SlimeVR
             activeSDA = PIN_IMU_SDA;
 
             uint8_t sensorID = 0;
-            uint8_t activeSensorCount = 0;
+            activeSensorCount = 0;
 #define IMU_DESC_ENTRY(...)                                          \
             {                                                        \
                 Sensor* sensor = buildSensor(sensorID, __VA_ARGS__); \
                 m_Sensors[sensorID] = sensor;                        \
-                sensorID++;                                          \
                 if (sensor->isWorking()) {                           \
                     m_Logger.info("Sensor %d configured", sensorID); \
                     activeSensorCount++;                             \
                 }                                                    \
+                sensorID++;                                          \
             }
             // Apply descriptor list and expand to entrys
             IMU_DESC_LIST;
@@ -221,7 +221,7 @@ namespace SlimeVR
             }
             if (sendCount == 0) return;
 
-            if (sendCount < MAX_IMU_COUNT) {
+            if (sendCount < activeSensorCount) {
                 // Some sensor have data to send, but not all sensors
                 // delay sending unting all sensors are prepared or timeout
                 uint32_t now = micros();

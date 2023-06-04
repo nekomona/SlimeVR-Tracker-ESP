@@ -64,6 +64,7 @@ namespace SlimeVR
             uint32_t sendRequestTime = 0;
 
             std::vector<Sensor *> m_Sensors;
+            uint8_t activeSensorCount;
             Sensor* buildSensor(uint8_t sensorID, uint8_t imuType, uint8_t address, float rotation, uint8_t sclPin, uint8_t sdaPin, int extraParam = 0);
             
             uint8_t activeSCL = 0;
