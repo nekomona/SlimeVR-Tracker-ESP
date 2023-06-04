@@ -617,7 +617,7 @@ namespace ServerConnection {
 
     unsigned long lastSensorInfoPacket = 0;
     bool sensorStateNotified[MAX_IMU_COUNT];
-    void updateSensorState(Sensor ** const sensors);
+    void updateSensorState(std::vector<Sensor *> & sensors);
 }
 
 void ServerConnection::returnLastPacket(int len) {
@@ -627,10 +627,10 @@ void ServerConnection::returnLastPacket(int len) {
     }
 }
 
-void ServerConnection::updateSensorState(Sensor ** const sensors) {
+void ServerConnection::updateSensorState(std::vector<Sensor *> & sensors) {
     if(millis() - lastSensorInfoPacket > 1000) {
         lastSensorInfoPacket = millis();
-        for (int i = 0; i < MAX_IMU_COUNT; i++) {
+        for (int i = 0; i < (int)sensors.size(); i++) {
             if (sensorStateNotified[i] != sensors[i]->getSensorState()) {
                 Network::sendSensorInfo(sensors[i]);
             }
@@ -711,7 +711,7 @@ void ServerConnection::resetConnection() {
     statusManager.setStatus(SlimeVR::Status::SERVER_CONNECTING, true);
 }
 
-void ServerConnection::update(Sensor ** const sensors) {
+void ServerConnection::update(std::vector<Sensor *> & sensors) {
     if(connected) {
         int packetSize = Udp.parsePacket();
         if (packetSize)
@@ -751,7 +751,7 @@ void ServerConnection::update(Sensor ** const sensors) {
                     udpClientLogger.warn("Wrong sensor info packet");
                     break;
                 }
-                for (int i = 0; i < MAX_IMU_COUNT; i++) {
+                for (int i = 0; i < (int)sensors.size(); i++) {
                     if (packetBuf[4] == sensors[i]->getSensorId()) {
                         sensorStateNotified[i] = packetBuf[5];
                         break;

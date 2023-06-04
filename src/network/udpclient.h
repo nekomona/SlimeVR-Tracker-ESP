@@ -32,7 +32,7 @@
 
 namespace ServerConnection {
     void connect();
-    void update(Sensor ** const sensors);
+    void update(std::vector<Sensor *> & sensors);
     void resetConnection();
     bool isConnected();
 }
