@@ -39,6 +39,7 @@ namespace SlimeVR
             sensor_real_t vecGravity[3]{0.0f, 0.0f, 0.0f};
             bool linaccelReady = false;
             sensor_real_t linAccel[3]{0.0f, 0.0f, 0.0f};
+            sensor_real_t linAccel_guard[3]{0.0f, 0.0f, 0.0f};
         };
     }
 }
