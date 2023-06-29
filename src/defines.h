@@ -55,14 +55,17 @@
   #define P_F_SDA  5
 #endif
 
-#define IMU_DESC_LIST IMU_DESC_ENTRY(IMU_MPU6050, 0x68, IMU_ROTATION, P_L_SCL, P_L_SDA);\
-                      IMU_DESC_ENTRY(IMU_MPU6050, 0x69, IMU_ROTATION, P_L_SCL, P_L_SDA);\
-                      IMU_DESC_ENTRY(IMU_MPU6050, 0x68, IMU_ROTATION, P_A_SCL, P_A_SDA);\
-                      IMU_DESC_ENTRY(IMU_MPU6050, 0x69, IMU_ROTATION, P_A_SCL, P_A_SDA);\
-                      IMU_DESC_ENTRY(IMU_MPU6050, 0x68, IMU_ROTATION, P_F_SCL, P_F_SDA);\
-                      IMU_DESC_ENTRY(IMU_MPU6050, 0x69, IMU_ROTATION, P_F_SCL, P_F_SDA);\
-                      IMU_DESC_ENTRY(IMU_MPU6050, 0x68, IMU_ROTATION, P_B_SCL, P_B_SDA);\
-                      IMU_DESC_ENTRY(IMU_MPU6050, 0x68, IMU_ROTATION, P_E_SCL, P_E_SDA);
+#define IMU_DESC_LIST IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_L_SCL, P_L_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x68, DEG_180, P_L_SCL, P_L_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_A_SCL, P_A_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x68, DEG_180, P_A_SCL, P_A_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_F_SCL, P_F_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x68, DEG_180, P_F_SCL, P_F_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_B_SCL, P_B_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_E_SCL, P_E_SDA);
+
+
+// #define IMU_DESC_LIST IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_L_SCL, P_L_SDA);
 
 // Axis mapping example
 /*
