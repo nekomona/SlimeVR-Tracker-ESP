@@ -155,7 +155,7 @@
   #define LED_INVERTED false
 #elif BOARD == BOARD_ES32C3DEVKITM1
   #define PIN_IMU_SDA 8
-  #define PIN_IMU_SCL 9
+  #define PIN_IMU_SCL 10
   #define PIN_IMU_INT 6
   #define PIN_IMU_INT_2 7
   #define PIN_BATTERY_LEVEL 3
