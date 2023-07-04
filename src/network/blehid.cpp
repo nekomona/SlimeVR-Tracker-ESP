@@ -116,6 +116,10 @@ void BLEHID::update()
     if (deviceConnected && !oldDeviceConnected) {
         oldDeviceConnected = deviceConnected;
 		rpt.rssi = 9;
+		// Windows won't prime notification when reconnected
+		// So set notification up manually here
+		BLE2902 *p2902 = (BLE2902*)pCharInput->getDescriptorByUUID((uint16_t)0x2902);
+		p2902->setNotifications(true);
     }
 	if (deviceConnected) {
 		if (newReport) {
