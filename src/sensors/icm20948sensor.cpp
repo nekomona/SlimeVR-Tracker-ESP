@@ -95,19 +95,20 @@ void ICM20948Sensor::sendData()
 
         #if(USE_6_AXIS)
         {
-            networkConnection.sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, 0);
+            // networkConnection.sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, 0);
         }
         #else
         {
-            Network::sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, dmpData.Quat9.Data.Accuracy);
+            // Network::sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, dmpData.Quat9.Data.Accuracy);
         }
         #endif
+		networkBleHid.sendSensorData(sensorId, fusedRotation, acceleration);
     }
 
 #if SEND_ACCELERATION
     if(newAcceleration) {
         newAcceleration = false;
-        networkConnection.sendSensorAcceleration(sensorId, acceleration);
+        // networkConnection.sendSensorAcceleration(sensorId, acceleration);
     }
 #endif
 }
@@ -299,7 +300,7 @@ void ICM20948Sensor::checkSensorTimeout()
         working = false;
         lastData = millis();
         m_Logger.error("Sensor timeout I2C Address 0x%02x", addr);
-        networkConnection.sendSensorError(this->sensorId, 1);
+        // networkConnection.sendSensorError(this->sensorId, 1);
     }
 }
 

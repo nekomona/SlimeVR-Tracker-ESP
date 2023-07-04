@@ -116,7 +116,7 @@ void BatteryMonitor::Loop()
                     level = 1;
                 else if (level < 0)
                     level = 0;
-                networkConnection.sendBatteryLevel(voltage, level);
+				networkBleHid.sendBatteryLevel(voltage, level);
                 #ifdef BATTERY_LOW_POWER_VOLTAGE
                     if (voltage < BATTERY_LOW_POWER_VOLTAGE)
                     {

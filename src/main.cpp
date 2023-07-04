@@ -38,10 +38,7 @@ SlimeVR::LEDManager ledManager(LED_PIN);
 SlimeVR::Status::StatusManager statusManager;
 SlimeVR::Configuration::Configuration configuration;
 SlimeVR::Network::Manager networkManager;
-SlimeVR::Network::Connection networkConnection;
-#if USE_REMOTE_COMMAND
-SlimeVR::Network::RemoteCmd networkRemoteCmd;
-#endif
+SlimeVR::Network::BLEHID networkBleHid;
 
 int sensorToCalibrate = -1;
 bool blinking = false;
@@ -102,7 +99,6 @@ void setup()
     sensorManager.setup();
 
     networkManager.setup();
-    OTA::otaSetup(otaPassword);
     battery.Setup();
 
     statusManager.setStatus(SlimeVR::Status::LOADING, false);
@@ -116,7 +112,6 @@ void loop()
 {
     globalTimer.tick();
     SerialCommands::update();
-    OTA::otaUpdate();
     networkManager.update();
     sensorManager.update();
     battery.Loop();

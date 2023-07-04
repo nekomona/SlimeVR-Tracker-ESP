@@ -46,7 +46,6 @@ namespace SerialCommands {
                 logger.error("CMD SET WIFI ERROR: Too few arguments");
                 logger.info("Syntax: SET WIFI \"<SSID>\" \"<PASSWORD>\"");
             } else {
-                WiFiNetwork::setWiFiCredentials(parser->getCmdParam(2), parser->getCmdParam(3));
                 logger.info("CMD SET WIFI OK: New wifi credentials set, reconnecting");
             }
         } else {
@@ -61,10 +60,10 @@ namespace SerialCommands {
             HARDWARE_MCU,
             FIRMWARE_BUILD_NUMBER,
             FIRMWARE_VERSION,
-            WiFiNetwork::getAddress().toString().c_str(),
-            WiFi.macAddress().c_str(),
+            "",
+            "",
             statusManager.getStatus(),
-            WiFiNetwork::getWiFiState()
+            1
         );
         Sensor* sensor1 = sensorManager.getFirst();
         Sensor* sensor2 = sensorManager.getSecond();
@@ -123,10 +122,10 @@ namespace SerialCommands {
                 HARDWARE_MCU,
                 FIRMWARE_BUILD_NUMBER,
                 FIRMWARE_VERSION,
-                WiFiNetwork::getAddress().toString().c_str(),
-                WiFi.macAddress().c_str(),
+                "",
+                "",
                 statusManager.getStatus(),
-                WiFiNetwork::getWiFiState()
+                1
             );
             Sensor* sensor1 = sensorManager.getFirst();
             sensor1->motionLoop();
@@ -163,16 +162,6 @@ namespace SerialCommands {
 
         configuration.reset();
 
-        WiFi.disconnect(true); // Clear WiFi credentials
-        #if ESP8266
-            ESP.eraseConfig(); // Clear ESP config
-        #elif ESP32
-            nvs_flash_erase();
-        #else
-            #warning SERIAL COMMAND FACTORY RESET NOT SUPPORTED
-            logger.info("FACTORY RESET NOT SUPPORTED");
-            return;
-        #endif
 
         #if defined(WIFI_CREDS_SSID) && defined(WIFI_CREDS_PASSWD)
             #warning FACTORY RESET does not clear your hardcoded WiFi credentials!
@@ -226,15 +215,5 @@ namespace SerialCommands {
 
     void update() {
         cmdCallbacks.updateCmdProcessing(&cmdParser, &cmdBuffer, &Serial);
-        #if USE_REMOTE_COMMAND
-        if (networkRemoteCmd.isConnected()) {
-			Stream & networkStream = networkRemoteCmd.getStream();
-			cmdFromRemote = true;
-			while (networkStream.available()) {
-				cmdCallbacks.updateCmdProcessing(&cmdParser, &cmdBuffer, &networkStream);
-			}
-			cmdFromRemote = false;
-		}
-        #endif
     }
 }

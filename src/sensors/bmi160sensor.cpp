@@ -192,7 +192,7 @@ void BMI160Sensor::motionSetup() {
 
     #if BMI160_USE_SENSCAL
     {
-        String localDevice = WiFi.macAddress();
+        String localDevice = "11:22:33:44:55:66";
         for (auto const& offsets : sensitivityOffsets) {
             if (!localDevice.equals(offsets.mac)) continue;
             if (offsets.sensorId != sensorId) continue;
@@ -367,9 +367,9 @@ void BMI160Sensor::motionLoop() {
             lastTemperaturePacketSent = now - (elapsed - sendInterval);
             #if BMI160_TEMPCAL_DEBUG
                 uint32_t isCalibrating = gyroTempCalibrator->isCalibrating() ? 10000 : 0;
-                networkConnection.sendTemperature(sensorId, isCalibrating + 10000 + (gyroTempCalibrator->config.samplesTotal * 100) + temperature);
+                // networkConnection.sendTemperature(sensorId, isCalibrating + 10000 + (gyroTempCalibrator->config.samplesTotal * 100) + temperature);
             #else
-                networkConnection.sendTemperature(sensorId, temperature);
+                // networkConnection.sendTemperature(sensorId, temperature);
             #endif
             optimistic_yield(100);
         }

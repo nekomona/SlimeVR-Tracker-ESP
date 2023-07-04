@@ -27,13 +27,16 @@
 namespace SlimeVR {
 namespace Network {
 
-void Manager::setup() { ::WiFiNetwork::setUp(); }
+void Manager::setup() { // ::WiFiNetwork::setUp();
+	networkBleHid.setup();
+}
 
 void Manager::update() {
-	WiFiNetwork::upkeep();
+	// # WiFiNetwork::upkeep();
+	networkBleHid.update();
 
 	auto wasConnected = m_IsConnected;
-
+	/*
 	m_IsConnected = ::WiFiNetwork::isConnected();
 
 	if (!m_IsConnected) {
@@ -52,6 +55,7 @@ void Manager::update() {
 	#ifdef USE_REMOTE_COMMAND
 	networkRemoteCmd.update();
 	#endif
+	*/
 }
 
 }  // namespace Network

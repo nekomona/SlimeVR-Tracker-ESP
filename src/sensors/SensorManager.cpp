@@ -128,11 +128,6 @@ namespace SlimeVR
             m_Sensor1->motionLoop();
             m_Sensor2->motionLoop();
 
-            if (!networkConnection.isConnected())
-            {
-                return;
-            }
-
             // Send updates
             m_Sensor1->sendData();
             m_Sensor2->sendData();

@@ -31,6 +31,7 @@
 #include "globals.h"
 #include "logging/Logger.h"
 #include "utils.h"
+#include "helper_3dmath.h"
 
 #define DATA_TYPE_NORMAL 1
 #define DATA_TYPE_CORRECTION 2
