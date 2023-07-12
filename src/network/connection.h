@@ -30,6 +30,7 @@
 #include "quat.h"
 #include "sensors/sensor.h"
 #include "wifihandler.h"
+#include "remotecmd.h"
 
 namespace SlimeVR {
 namespace Network {
