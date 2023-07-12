@@ -38,6 +38,7 @@ namespace SerialCommands {
     CmdCallback<6> cmdCallbacks;
     CmdParser cmdParser;
     CmdBuffer<64> cmdBuffer;
+	bool cmdFromRemote = false;
 
     void cmdSet(CmdParser * parser) {
         if(parser->getParamCount() != 1 && parser->equalCmdParam(1, "WIFI")  ) {
@@ -84,6 +85,10 @@ namespace SerialCommands {
     }
 
     void cmdGet(CmdParser * parser) {
+#if USE_REMOTE_COMMAND && ALLOW_REMOTE_WIFI_PROV
+		if (cmdFromRemote && !networkConnection.isConnected()) return;
+#endif
+
         if (parser->getParamCount() < 2) {
             return;
         }
@@ -141,11 +146,19 @@ namespace SerialCommands {
     }
 
     void cmdReboot(CmdParser * parser) {
+#if USE_REMOTE_COMMAND && ALLOW_REMOTE_WIFI_PROV
+		if (cmdFromRemote && !networkConnection.isConnected()) return;
+#endif
+
         logger.info("REBOOT");
         ESP.restart();
     }
 
     void cmdFactoryReset(CmdParser * parser) {
+#if USE_REMOTE_COMMAND && ALLOW_REMOTE_WIFI_PROV
+		if (cmdFromRemote && !networkConnection.isConnected()) return;
+#endif
+
         logger.info("FACTORY RESET");
 
         configuration.reset();
@@ -171,6 +184,10 @@ namespace SerialCommands {
     }
 
     void cmdTemperatureCalibration(CmdParser* parser) {
+#if USE_REMOTE_COMMAND && ALLOW_REMOTE_WIFI_PROV
+		if (cmdFromRemote && !networkConnection.isConnected()) return;
+#endif
+
         if (parser->getParamCount() > 1) {
             if (parser->equalCmdParam(1, "PRINT")) {
                 sensorManager.getFirst()->printTemperatureCalibrationState();
@@ -212,9 +229,11 @@ namespace SerialCommands {
         #if USE_REMOTE_COMMAND
         if (networkRemoteCmd.isConnected()) {
 			Stream & networkStream = networkRemoteCmd.getStream();
+			cmdFromRemote = true;
 			while (networkStream.available()) {
 				cmdCallbacks.updateCmdProcessing(&cmdParser, &cmdBuffer, &networkStream);
 			}
+			cmdFromRemote = false;
 		}
         #endif
     }

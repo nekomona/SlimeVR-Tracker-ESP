@@ -103,6 +103,8 @@ public:
 	);
 #endif
 
+friend RemoteCmd;
+
 private:
 	void updateSensorState(Sensor* const sensor1, Sensor* const sensor2);
 
