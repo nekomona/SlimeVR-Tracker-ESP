@@ -25,14 +25,42 @@
 // https://docs.slimevr.dev/firmware/configuring-project.html#2-configuring-definesh
 // ================================================
 
+#define BOARD_SQUIMEVR 128
+
 // Set parameters of IMU and board used
 #define IMU IMU_BNO085
 #define SECOND_IMU IMU
-#define BOARD BOARD_SLIMEVR
+#define BOARD BOARD_SQUIMEVR
 #define IMU_ROTATION DEG_270
 #define SECOND_IMU_ROTATION DEG_270
 
-#define MAX_IMU_COUNT 2
+#define MAX_IMU_COUNT 6
+
+#if BOARD == BOARD_SQUIMEVR
+  #define P_L_SCL 21
+  #define P_L_SDA 13
+
+  #define P_A_SCL  1
+  #define P_A_SDA 42
+  #define P_B_SCL 40
+  #define P_B_SDA 38
+  #define P_C_SCL 36
+  #define P_C_SDA 48
+
+  #define P_D_SCL 11
+  #define P_D_SDA  9
+  #define P_E_SCL  8
+  #define P_E_SDA 17
+  #define P_F_SCL  7
+  #define P_F_SDA  5
+#endif
+
+#define IMU_DESC_LIST IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_L_SCL, P_L_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x68, DEG_180, P_L_SCL, P_L_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_A_SCL, P_A_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x68, DEG_180, P_A_SCL, P_A_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x69, DEG_180, P_F_SCL, P_F_SDA);\
+                      IMU_DESC_ENTRY(IMU_BMI160,  0x68, DEG_180, P_F_SCL, P_F_SDA);
 
 // Axis mapping example
 /*
@@ -178,4 +206,15 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
   #define PIN_BATTERY_LEVEL 3
   #define LED_PIN LED_OFF  // RGB LED Protocol would need to be implementetet did not brother for the test, because the board ideal for tracker ifself
 //  #define LED_INVERTED false
+#elif BOARD == BOARD_SQUIMEVR
+  #define PIN_IMU_SDA 13
+  #define PIN_IMU_SCL 21
+  #define PIN_IMU_INT 14
+  #define PIN_IMU_INT_2 12
+  #define PIN_BATTERY_LEVEL 15
+  #define LED_PIN 46
+  #define LED_INVERTED false
+  #define BATTERY_SHIELD_RESISTANCE 0 //130k BatteryShield, 180k SlimeVR or fill in external resistor value in kOhm
+  #define BATTERY_SHIELD_R1 1000 // Board voltage divider resistor Ain to GND in kOhm
+  #define BATTERY_SHIELD_R2 1000 // Board voltage divider resistor Ain to INPUT_BOARD in kOhm
 #endif

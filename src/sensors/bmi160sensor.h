@@ -37,7 +37,7 @@
 
 #if BMI160_USE_VQF
     #if USE_6_AXIS
-        #define BMI160_GYRO_RATE BMI160_GYRO_RATE_400HZ
+        #define BMI160_GYRO_RATE BMI160_GYRO_RATE_100HZ
     #else
         #define BMI160_GYRO_RATE BMI160_GYRO_RATE_200HZ
     #endif
