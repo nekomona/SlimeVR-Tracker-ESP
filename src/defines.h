@@ -78,8 +78,8 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
 #endif
 
 // Battery monitoring options (comment to disable):
-//   BAT_EXTERNAL for ADC pin, 
-//   BAT_INTERNAL for internal - can detect only low battery, 
+//   BAT_EXTERNAL for ADC pin,
+//   BAT_INTERNAL for internal - can detect only low battery,
 //   BAT_MCP3021 for external ADC connected over I2C
 #define BATTERY_MONITOR BAT_EXTERNAL
 
@@ -100,7 +100,7 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
 //   LED_PIN
 //     - Number or Symbol (D1,..) of the Output
 //     - To turn off the LED, set LED_PIN to LED_OFF
-//   LED_INVERTED 
+//   LED_INVERTED
 //     - false for output 3.3V on high
 //     - true for pull down to GND on high
 
@@ -116,7 +116,7 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
   #ifndef BATTERY_SHIELD_RESISTANCE
     #define BATTERY_SHIELD_RESISTANCE 0
   #endif
-  #ifndef BATTERY_SHIELD_R1 
+  #ifndef BATTERY_SHIELD_R1
     #define BATTERY_SHIELD_R1 10
   #endif
   #ifndef BATTERY_SHIELD_R2
@@ -133,7 +133,7 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
   #ifndef BATTERY_SHIELD_RESISTANCE
     #define BATTERY_SHIELD_RESISTANCE 0
   #endif
-  #ifndef BATTERY_SHIELD_R1 
+  #ifndef BATTERY_SHIELD_R1
     #define BATTERY_SHIELD_R1 10
   #endif
   #ifndef BATTERY_SHIELD_R2
@@ -150,7 +150,7 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
   #ifndef BATTERY_SHIELD_RESISTANCE
     #define BATTERY_SHIELD_RESISTANCE 180
   #endif
-  #ifndef BATTERY_SHIELD_R1 
+  #ifndef BATTERY_SHIELD_R1
     #define BATTERY_SHIELD_R1 100
   #endif
   #ifndef BATTERY_SHIELD_R2
@@ -217,4 +217,5 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
   #define BATTERY_SHIELD_RESISTANCE 0 //130k BatteryShield, 180k SlimeVR or fill in external resistor value in kOhm
   #define BATTERY_SHIELD_R1 1000 // Board voltage divider resistor Ain to GND in kOhm
   #define BATTERY_SHIELD_R2 1000 // Board voltage divider resistor Ain to INPUT_BOARD in kOhm
+  #define batteryADCOffset 0.5
 #endif

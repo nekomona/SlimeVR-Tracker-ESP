@@ -78,7 +78,7 @@ void BatteryMonitor::Loop()
                 }
             #endif
             #if BATTERY_MONITOR == BAT_EXTERNAL
-                voltage = ((float)analogRead(PIN_BATTERY_LEVEL)) * batteryADCMultiplier;
+                voltage = ((float)analogRead(PIN_BATTERY_LEVEL)) * batteryADCMultiplier + batteryADCOffset;
             #endif
             #if BATTERY_MONITOR == BAT_MCP3021 || BATTERY_MONITOR == BAT_INTERNAL_MCP3021
                 if (address > 0)
