@@ -159,8 +159,14 @@ void MPU6050Sensor::motionLoop()
 
         if (!OPTIMIZE_UPDATES || !lastFusedRotationSent.equalsWithEpsilon(fusedRotation))
         {
+#if ESP32
+            xSemaphoreTake(updateMutex, portMAX_DELAY);
+#endif
             newFusedRotation = true;
             lastFusedRotationSent = fusedRotation;
+#if ESP32
+            xSemaphoreGive(updateMutex);
+#endif
         }
     }
 }

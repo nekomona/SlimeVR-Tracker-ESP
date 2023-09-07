@@ -30,9 +30,25 @@ SensorStatus Sensor::getSensorState() {
 }
 
 void Sensor::sendData() {
+#if ESP32
+    Quat lquat;
+    xSemaphoreTake(updateMutex, portMAX_DELAY);
     if(newFusedRotation) {
         newFusedRotation = false;
+        lquat = fusedRotation;
+        xSemaphoreGive(updateMutex);
+    } else {
+        xSemaphoreGive(updateMutex);
+        return;
+    }
+
+    {
         networkConnection.sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, calibrationAccuracy);
+#else
+	if(newFusedRotation) {
+        newFusedRotation = false;
+        networkConnection.sendRotationData(sensorId, &fusedRotation, DATA_TYPE_NORMAL, calibrationAccuracy);
+#endif
 
 #ifdef DEBUG_SENSOR
         m_Logger.trace("Quaternion: %f, %f, %f, %f", UNPACK_QUATERNION(fusedRotation));

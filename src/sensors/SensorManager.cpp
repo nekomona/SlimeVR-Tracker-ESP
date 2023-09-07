@@ -175,10 +175,31 @@ namespace SlimeVR
                     sensor->postSetup();
                 }
             }
+#if ESP32
+            for (auto sensor : m_Sensors) {
+                sensor->updateMutex = xSemaphoreCreateMutex();
+            }
+            xTaskCreatePinnedToCore(updateSensors, "sensors", 16*1024, this, 10, &sensorTask, ARDUINO_RUNNING_CORE);
+#endif
         }
+        
+#if ESP32
+        void SensorManager::updateSensors(void * pxParameter) {
+            SensorManager *pthis = (SensorManager *)pxParameter;
+            for (;;) {
+                for (auto sensor : pthis->m_Sensors) {
+                    if (sensor->isWorking()) {
+                        pthis->swapI2C(sensor->sclPin, sensor->sdaPin);
+                        sensor->motionLoop();
+                    }
+                }
+            }
+        }
+#endif
 
         void SensorManager::update()
         {
+#if !ESP32
             // Gather IMU data
             for (auto sensor : m_Sensors) {
                 if (sensor->isWorking()) {
@@ -186,6 +207,7 @@ namespace SlimeVR
                     sensor->motionLoop();
                 }
             }
+#endif
 
             if (!networkConnection.isConnected()) {
                 return;
