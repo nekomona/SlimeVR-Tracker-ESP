@@ -377,8 +377,6 @@ void BMI160Sensor::motionLoop() {
 
             fusedRotation = sfusion.getQuaternionQuat();
 
-            sfusion.getLinearAcc(this->acceleration);
-			this->newAcceleration = true;
 
             fusedRotation *= sensorOffset;
 
@@ -387,6 +385,10 @@ void BMI160Sensor::motionLoop() {
 #if ESP32
                 xSemaphoreTake(updateMutex, portMAX_DELAY);
 #endif
+				// Be lazy about accel update to reduce packet count
+				sfusion.getLinearAcc(this->acceleration);
+				this->newAcceleration = true;
+
                 newFusedRotation = true;
                 lastFusedRotationSent = fusedRotation;
 #if ESP32
