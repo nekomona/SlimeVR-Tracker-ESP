@@ -145,7 +145,8 @@ void BMI160Sensor::motionSetup() {
     float g_az = (float)az / BMI160_ACCEL_TYPICAL_SENSITIVITY_LSB;
     if (g_az < -0.75f) {
         ledManager.on();
-
+		// Disable calibration for local usage
+		/*
         m_Logger.info("Flip front to confirm start calibration");
         delay(5000);
         getRemappedAcceleration(&ax, &ay, &az);
@@ -154,7 +155,7 @@ void BMI160Sensor::motionSetup() {
             m_Logger.debug("Starting calibration...");
             startCalibration(0);
         }
-
+		*/
         ledManager.off();
     }
 
@@ -302,7 +303,7 @@ void BMI160Sensor::motionLoop() {
                 }
             }
 
-            getTemperature(&temperature);
+            // getTemperature(&temperature);
             optimistic_yield(100);
         }
     }
@@ -350,6 +351,7 @@ void BMI160Sensor::motionLoop() {
         }
     }
 
+	/*
     {
         uint32_t now = micros();
         constexpr float maxSendRateHz = 2.0f;
@@ -366,6 +368,7 @@ void BMI160Sensor::motionLoop() {
             optimistic_yield(100);
         }
     }
+	*/
 
     {
         uint32_t now = micros();

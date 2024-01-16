@@ -71,6 +71,6 @@
 #define BMI160_DEBUG false
 
 // Use sensitivity calibration.
-#define BMI160_USE_SENSCAL true
+#define BMI160_USE_SENSCAL false
 
 #endif
