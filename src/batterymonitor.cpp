@@ -81,7 +81,8 @@ void BatteryMonitor::Loop()
                 voltage = ((float)analogRead(PIN_BATTERY_LEVEL)) * ADCVoltageMax / ADCResolution * ADCMultiplier;
             #endif
             #if ESP32 && BATTERY_MONITOR == BAT_EXTERNAL
-                voltage = ((float)analogReadMilliVolts(PIN_BATTERY_LEVEL)) / 1000 * ADCMultiplier;
+
+                voltage = ((float)analogReadMilliVolts(PIN_BATTERY_LEVEL)) / 1000 * ADCMultiplier + batteryADCOffset;
             #endif
             #if BATTERY_MONITOR == BAT_MCP3021 || BATTERY_MONITOR == BAT_INTERNAL_MCP3021
                 if (address > 0)

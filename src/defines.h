@@ -217,5 +217,5 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
   #define BATTERY_SHIELD_RESISTANCE 0 //130k BatteryShield, 180k SlimeVR or fill in external resistor value in kOhm
   #define BATTERY_SHIELD_R1 1000 // Board voltage divider resistor Ain to GND in kOhm
   #define BATTERY_SHIELD_R2 1000 // Board voltage divider resistor Ain to INPUT_BOARD in kOhm
-  #define batteryADCOffset 0.5
+  #define batteryADCOffset 0.09f
 #endif
