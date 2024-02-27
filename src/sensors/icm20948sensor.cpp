@@ -349,7 +349,7 @@ void ICM20948Sensor::readRotation()
             Quat nRotation(q1, q2, q3, q0); // x, y, z, w
 
             #if SEND_ACCELERATION
-            calculateAccelerationWithoutGravity(&fusedRotation);
+            calculateAccelerationWithoutGravity(&nRotation);
             #endif
 
             setFusedRotation(nRotation);
@@ -371,7 +371,7 @@ void ICM20948Sensor::readRotation()
             Quat nRotation(q1, q2, q3, q0); // x, y, z, w
 
             #if SEND_ACCELERATION
-            calculateAccelerationWithoutGravity(&fusedRotation);
+            calculateAccelerationWithoutGravity(&nRotation);
             #endif
 
             setFusedRotation(nRotation);
