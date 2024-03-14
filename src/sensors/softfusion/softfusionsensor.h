@@ -195,6 +195,8 @@ public:
             && (sensorCalibration.data.sfusion.ImuType == imu::Type)
             && (sensorCalibration.data.sfusion.MotionlessDataLen == MotionlessCalibDataSize())) {
             m_calibration = sensorCalibration.data.sfusion;
+                m_calibration.G_Ts = imu::GyrTs;
+                m_calibration.A_Ts = imu::AccTs;
             recalcFusion();
         }
         else if (sensorCalibration.type == SlimeVR::Configuration::CalibrationConfigType::NONE) {
@@ -222,6 +224,8 @@ public:
             m_status = SensorStatus::SENSOR_ERROR;
             return;
         }
+
+
 
         m_status = SensorStatus::SENSOR_OK;
         working = true;
