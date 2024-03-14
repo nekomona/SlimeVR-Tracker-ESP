@@ -42,8 +42,8 @@ struct ICM42688
     static constexpr auto Name = "ICM-42688";
     static constexpr auto Type = ImuID::ICM42688;
 
-    static constexpr float GyrTs=1.0/500.0;
-    static constexpr float AccTs=1.0/100.0;
+    static constexpr float GyrTs=1.0/(200.0 * 32.0 / 32.0);
+    static constexpr float AccTs=1.0/(100.0 * 32.0 / 32.0);
 
     static constexpr float MagTs=1.0/100;
 
@@ -80,7 +80,7 @@ struct ICM42688
         };
         struct GyroConfig {
             static constexpr uint8_t reg = 0x4f;
-            static constexpr uint8_t value = (0b001 << 5) | 0b1111; //1000dps, odr=500Hz
+            static constexpr uint8_t value = (0b001 << 5) | 0b0111; //1000dps, odr=500Hz
         };
         struct AccelConfig {
             static constexpr uint8_t reg = 0x50;
@@ -123,6 +123,7 @@ struct ICM42688
         delay(20);
 
         i2c.writeReg(Regs::IntfConfig0::reg, Regs::IntfConfig0::value);
+        i2c.writeReg(0x4D, 0x90);
         i2c.writeReg(Regs::GyroConfig::reg, Regs::GyroConfig::value);
         i2c.writeReg(Regs::AccelConfig::reg, Regs::AccelConfig::value);
         i2c.writeReg(Regs::FifoConfig0::reg, Regs::FifoConfig0::value);
