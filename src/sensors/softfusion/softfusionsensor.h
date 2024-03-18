@@ -66,6 +66,7 @@ class SoftFusionSensor : public Sensor
         m_fusion = SensorFusionRestDetect(m_calibration.G_Ts, m_calibration.A_Ts, m_calibration.M_Ts);
     }
 
+public:
     void processAccelSample(const int16_t xyz[3], const sensor_real_t timeDelta)
     {
         sensor_real_t accelData[] = {
@@ -92,6 +93,7 @@ class SoftFusionSensor : public Sensor
             static_cast<sensor_real_t>(GScale * (static_cast<sensor_real_t>(xyz[2]) - m_calibration.G_off[2]))};
         m_fusion.updateGyro(scaledData, m_calibration.G_Ts);
     }
+private:
 
     void eatSamplesForSeconds(const size_t seconds) {
         const auto targetDelay = millis() + 1000 * seconds;
@@ -142,7 +144,7 @@ public:
       m_fusion(imu::GyrTs, imu::AccTs, imu::MagTs), m_sensor(I2CImpl(imu::Address + addrSuppl), m_Logger) {}
     ~SoftFusionSensor(){}
 
-    void motionLoop() override final
+    void motionLoop() override
     {
         sendTempIfNeeded();
 

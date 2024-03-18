@@ -84,7 +84,7 @@ public:
     const Quat& getFusedRotation() {
         return fusedRotation;
     };
-    bool hasNewDataToSend() {
+    virtual bool hasNewDataToSend() {
         return newFusedRotation || newAcceleration;
     };
 

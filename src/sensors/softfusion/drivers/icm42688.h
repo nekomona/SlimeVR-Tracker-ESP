@@ -57,7 +57,7 @@ struct ICM42688
         };
         struct GyroConfig {
             static constexpr uint8_t reg = 0x4f;
-            static constexpr uint8_t value = (0b001 << 5) | 0b0111; //1000dps, odr=500Hz
+            static constexpr uint8_t value = (0b001 << 5) | 0b0111; //1000dps, odr=200Hz
         };
         struct AccelConfig {
             static constexpr uint8_t reg = 0x50;
@@ -123,6 +123,13 @@ struct ICM42688
         const auto fifo_bytes = i2c.readReg16(Regs::FifoCount);
         
         std::array<uint8_t, FullFifoEntrySize * 8> read_buffer; // max 8 readings
+        
+        // Flush FIFO if excessive data in FIFO
+        if (fifo_bytes > read_buffer.size()) {
+            i2c.writeReg(0x4B, 0x02);
+            i2c.writeReg(0x4B, 0x00);
+        }
+
         const auto bytes_to_read = std::min(static_cast<size_t>(read_buffer.size()),
             static_cast<size_t>(fifo_bytes)) / FullFifoEntrySize * FullFifoEntrySize;
         i2c.readBytes(Regs::FifoData, bytes_to_read, read_buffer.data());

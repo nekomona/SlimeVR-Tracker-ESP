@@ -31,6 +31,7 @@
 #include "icm20948sensor.h"
 #include "sensoraddresses.h"
 #include "softfusion/softfusionsensor.h"
+#include "softfusion/softfusionsensorbuffered.h"
 #include "softfusion/drivers/lsm6ds3trc.h"
 #include "softfusion/drivers/icm42688.h"
 #include "softfusion/drivers/bmi270.h"
@@ -50,6 +51,7 @@ namespace SlimeVR
         using SoftFusionICM42688 = SoftFusionSensor<SoftFusion::Drivers::ICM42688, SoftFusion::I2CImpl>;
         using SoftFusionBMI270 = SoftFusionSensor<SoftFusion::Drivers::BMI270, SoftFusion::I2CImpl>;
         using SoftFusionLSM6DSV = SoftFusionSensor<SoftFusion::Drivers::LSM6DSV, SoftFusion::I2CImpl>;
+        using SoftFusionICM42688Buffered = SoftFusionSensorBuffered<SoftFusion::Drivers::ICM42688, SoftFusion::I2CImpl>;
 
         // TODO Make it more generic in the future and move another place (abstract sensor interface)
         void SensorManager::swapI2C(uint8_t sclPin, uint8_t sdaPin)
@@ -181,8 +183,9 @@ namespace SlimeVR
                 bool allSensorsReady = true;
                 for (auto &sensor : m_Sensors) {
                     if (!sensor->isWorking()) continue;
-                    if (sensor->hasNewDataToSend()) shouldSend = true;
-                    allSensorsReady &= sensor->hasNewDataToSend();
+                    bool sensorReady = sensor->hasNewDataToSend();
+                    if (sensorReady) shouldSend = true;
+                    allSensorsReady &= sensorReady;
                 }
 
                 if (now - m_LastBundleSentAtMicros < PACKET_BUNDLING_BUFFER_SIZE_MICROS) {
