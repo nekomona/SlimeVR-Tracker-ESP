@@ -19,8 +19,8 @@ struct ICM42688
     static constexpr auto Name = "ICM-42688";
     static constexpr auto Type = ImuID::ICM42688;
 
-    static constexpr float GyrTs=1.0/(200.0 * 32.0 / 32.0);
-    static constexpr float AccTs=1.0/(100.0 * 32.0 / 32.0);
+    static constexpr float GyrTs=1.0/(200.0 * 32.768 / 32.0);
+    static constexpr float AccTs=1.0/(100.0 * 32.768 / 32.0);
 
     static constexpr float MagTs=1.0/100;
 
@@ -39,6 +39,8 @@ struct ICM42688
         };
         static constexpr uint8_t TempData = 0x1d;
 
+        static constexpr uint8_t BankSel = 0x76;
+
         struct DeviceConfig {
             static constexpr uint8_t reg = 0x11;
             static constexpr uint8_t valueSwReset = 1;
@@ -47,13 +49,21 @@ struct ICM42688
             static constexpr uint8_t reg = 0x4c;
             static constexpr uint8_t value = (0 << 4) | (0 << 5) | (0 << 6); //fifo count in LE, sensor data in LE, fifo size in bytes
         };
+        struct IntfConfig1 {
+            static constexpr uint8_t reg = 0x4d; //Reset value: 0x91
+            static constexpr uint8_t value = (0b1001 << 4) | (0 << 3) | (1 << 2) | (0b01); //Reserved[7:4](0b1001), ACCEL_LP_CLK_SEL[3], RTC_MODE[2], CLKSEL[1:0]
+        };
+        struct IntfConfig5 {
+            static constexpr uint8_t reg = 0x7b;
+            static constexpr uint8_t value = (0b10 << 1); // PIN9_FUNCTION = CLKIN
+        };
         struct FifoConfig0 {
             static constexpr uint8_t reg = 0x16;
             static constexpr uint8_t value = (0b01 << 6); //stream to FIFO mode
         };
         struct FifoConfig1 {
             static constexpr uint8_t reg = 0x5f;
-            static constexpr uint8_t value = 0b1 | (0b1 << 1) | (0b0 << 2); //fifo accel en=1, gyro=1, temp=0 todo: fsync, hires 
+            static constexpr uint8_t value = 0b1 | (0b1 << 1) | (0b0 << 2); //fifo accel en=1, gyro=1, temp=0 todo: fsync, hires
         };
         struct GyroConfig {
             static constexpr uint8_t reg = 0x4f;
@@ -100,7 +110,11 @@ struct ICM42688
         delay(20);
 
         i2c.writeReg(Regs::IntfConfig0::reg, Regs::IntfConfig0::value);
-        i2c.writeReg(0x4D, 0x90);
+        //i2c.writeReg(0x4D, 0x90);
+        i2c.writeReg(Regs::IntfConfig1::reg, Regs::IntfConfig1::value);
+        i2c.writeReg(Regs::BankSel, 1);
+        i2c.writeReg(Regs::IntfConfig5::reg, Regs::IntfConfig5::value);
+        i2c.writeReg(Regs::BankSel, 0);
         i2c.writeReg(Regs::GyroConfig::reg, Regs::GyroConfig::value);
         i2c.writeReg(Regs::AccelConfig::reg, Regs::AccelConfig::value);
         i2c.writeReg(Regs::FifoConfig0::reg, Regs::FifoConfig0::value);
