@@ -116,7 +116,7 @@ private:
     {
         RawVectorT accel = {0};
         RawVectorT gyro = {0};
-        const auto targetDelay = millis() + 1000 * seconds;
+        const auto targetDelay = millis() + 50 * seconds;
         while (millis() < targetDelay)
         {
             m_sensor.bulkRead(
