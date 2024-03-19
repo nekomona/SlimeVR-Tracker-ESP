@@ -172,11 +172,8 @@ public:
         if (elapsed >= sendInterval) {
             m_lastRotationPacketSent = now - (elapsed - sendInterval);
 
-            fusedRotation = m_fusion.getQuaternionQuat();
-            setFusedRotationReady();
-
-            acceleration = m_fusion.getLinearAccVec();
-            setAccelerationReady();
+            setFusedRotation(m_fusion.getQuaternionQuat());
+            setAcceleration(m_fusion.getLinearAccVec());
 
             fusedRotation *= sensorOffset;
             optimistic_yield(100);
