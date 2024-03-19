@@ -250,7 +250,7 @@ public:
 
         m_status = SensorStatus::SENSOR_OK;
         working = true;
-        [[maybe_unused]] auto lastRawSample = eatSamplesReturnLast(1000);
+        [[maybe_unused]] auto lastRawSample = eatSamplesReturnLast(50);
         if constexpr(UpsideDownCalibrationInit) {
             auto gravity = static_cast<sensor_real_t>(AScale * static_cast<sensor_real_t>(lastRawSample.first[2]));
             m_Logger.info("Gravity read: %.1f (need < -7.5 to start calibration)", gravity);
