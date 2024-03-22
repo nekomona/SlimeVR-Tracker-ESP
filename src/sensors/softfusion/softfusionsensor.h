@@ -189,6 +189,8 @@ public:
 
         SlimeVR::Configuration::CalibrationConfig sensorCalibration = configuration.getCalibration(sensorId);
 
+        bool calibrated = false;
+
         // If no compatible calibration data is found, the calibration data will just be zero-ed out
         if (sensorCalibration.type == SlimeVR::Configuration::CalibrationConfigType::SFUSION
             && (sensorCalibration.data.sfusion.ImuType == imu::Type)
@@ -197,6 +199,7 @@ public:
                 m_calibration.G_Ts = imu::GyrTs;
                 m_calibration.A_Ts = imu::AccTs;
             recalcFusion();
+            calibrated = true;
         }
         else if (sensorCalibration.type == SlimeVR::Configuration::CalibrationConfigType::NONE) {
             m_Logger.warn("No calibration data found for sensor %d, ignoring...", sensorId);
@@ -228,24 +231,26 @@ public:
 
         m_status = SensorStatus::SENSOR_OK;
         working = true;
-        [[maybe_unused]] auto lastRawSample = eatSamplesReturnLast(1);
-        if constexpr(UpsideDownCalibrationInit) {
-            auto gravity = static_cast<sensor_real_t>(AScale * static_cast<sensor_real_t>(lastRawSample.first[2]));
-            m_Logger.info("Gravity read: %.1f (need < -7.5 to start calibration)", gravity);
-            if (gravity < -7.5f) {
-                ledManager.on();
-                m_Logger.info("Flip front in 5 seconds to start calibration");
-                lastRawSample = eatSamplesReturnLast(5);
-                gravity = static_cast<sensor_real_t>(AScale * static_cast<sensor_real_t>(lastRawSample.first[2]));
-                if (gravity > 7.5f) {
-                    m_Logger.debug("Starting calibration...");
-                    startCalibration(0);
-                }
-                else {
-                    m_Logger.info("Flip not detected. Skipping calibration.");
-                }
+        if (!calibrated) {
+            [[maybe_unused]] auto lastRawSample = eatSamplesReturnLast(1);
+            if constexpr(UpsideDownCalibrationInit) {
+                auto gravity = static_cast<sensor_real_t>(AScale * static_cast<sensor_real_t>(lastRawSample.first[2]));
+                m_Logger.info("Gravity read: %.1f (need < -7.5 to start calibration)", gravity);
+                if (gravity < -7.5f) {
+                    ledManager.on();
+                    m_Logger.info("Flip front in 5 seconds to start calibration");
+                    lastRawSample = eatSamplesReturnLast(20*5);
+                    gravity = static_cast<sensor_real_t>(AScale * static_cast<sensor_real_t>(lastRawSample.first[2]));
+                    if (gravity > 7.5f) {
+                        m_Logger.debug("Starting calibration...");
+                        startCalibration(0);
+                    }
+                    else {
+                        m_Logger.info("Flip not detected. Skipping calibration.");
+                    }
 
-                ledManager.off();
+                    ledManager.off();
+                }
             }
         }
     }
