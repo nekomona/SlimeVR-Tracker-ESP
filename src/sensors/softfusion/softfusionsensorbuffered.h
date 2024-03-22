@@ -34,9 +34,13 @@ class SoftFusionSensorBuffered : public SoftFusionSensor<T, I2CImpl>
     }
 
     void setFusedRotation(Quat r) 
-    {
-        s::fusedRotation = r;
-        s::newFusedRotation = true;
+    {  
+        s::fusedRotation = r * s::sensorOffset;
+        bool changed = OPTIMIZE_UPDATES ? !s::lastFusedRotationSent.equalsWithEpsilon(s::fusedRotation) : true;
+        if (ENABLE_INSPECTION || changed) {
+            s::newFusedRotation = true;
+            s::lastFusedRotationSent = s::fusedRotation;
+        }
     }
 
     void processAccelSample(const int16_t xyz[3], const sensor_real_t timeDelta)
