@@ -35,7 +35,7 @@
 #define PRIMARY_IMU_OPTIONAL false
 #define SECONDARY_IMU_OPTIONAL true
 
-#define MAX_IMU_COUNT 2
+#define MAX_IMU_COUNT 6
 
 // Axis mapping example
 /*
