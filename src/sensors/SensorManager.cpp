@@ -58,6 +58,7 @@ namespace SlimeVR
         using SoftFusionLSM6DSR = SoftFusionSensor<SoftFusion::Drivers::LSM6DSR, SoftFusion::I2CImpl>;
         using SoftFusionMPU6050 = SoftFusionSensor<SoftFusion::Drivers::MPU6050, SoftFusion::I2CImpl>;
         using SoftFusionICM42688Buffered = SoftFusionSensorBuffered<SoftFusion::Drivers::ICM42688, SoftFusion::I2CImpl>;
+        using SoftFusionBMI270Buffered = SoftFusionSensorBuffered<SoftFusion::Drivers::BMI270, SoftFusion::I2CImpl>;
 
         // TODO Make it more generic in the future and move another place (abstract sensor interface)
         void SensorManager::swapI2C(uint8_t sclPin, uint8_t sdaPin)

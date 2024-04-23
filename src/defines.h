@@ -47,12 +47,12 @@ IMU_DESC_ENTRY(IMU_BMP160, PRIMARY_IMU_ADDRESS_ONE, IMU_ROTATION, PIN_IMU_SCL, P
 */
 
 #define IMU_DESC_LIST \
-        IMU_DESC_ENTRY(IMU_ICM42688, 1, DEG_270, 5,  6, true) \
-        IMU_DESC_ENTRY(IMU_ICM42688, 0, DEG_180, 5,  6, true) \
-        IMU_DESC_ENTRY(IMU_ICM42688, 0, DEG_180, 7,  4, true) \
-        IMU_DESC_ENTRY(IMU_ICM42688, 1, DEG_180, 7,  4, true) \
-        IMU_DESC_ENTRY(IMU_ICM42688, 0,   DEG_0, 1, 10, true) \
-        IMU_DESC_ENTRY(IMU_ICM42688, 1,   DEG_0, 1, 10, true) \
+        IMU_DESC_ENTRY(IMU_BMI270, 1, DEG_270, 5,  6, true) \
+        IMU_DESC_ENTRY(IMU_BMI270, 0, DEG_180, 5,  6, true) \
+        IMU_DESC_ENTRY(IMU_BMI270, 0, DEG_180, 7,  4, true) \
+        IMU_DESC_ENTRY(IMU_BMI270, 1, DEG_180, 7,  4, true) \
+        IMU_DESC_ENTRY(IMU_BMI270, 0,   DEG_0, 1, 10, true) \
+        IMU_DESC_ENTRY(IMU_BMI270, 1,   DEG_0, 1, 10, true) \
 
 #ifndef IMU_DESC_LIST
 #define IMU_DESC_LIST \
