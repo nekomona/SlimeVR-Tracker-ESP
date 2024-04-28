@@ -73,7 +73,7 @@ public:
 
         // read fifo updating fusion
         uint32_t now = micros();
-        constexpr uint32_t targetPollIntervalMicros = 6000;
+        constexpr uint32_t targetPollIntervalMicros = 0;
         uint32_t elapsed = now - s::m_lastPollTime;
         if (elapsed >= targetPollIntervalMicros) {
             s::m_lastPollTime = now - (elapsed - targetPollIntervalMicros);

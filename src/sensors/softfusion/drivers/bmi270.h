@@ -44,7 +44,7 @@ struct BMI270
     static constexpr auto Name = "BMI270";
     static constexpr auto Type = ImuID::BMI270;
 
-    static constexpr float GyrTs=1.0/400.0;
+    static constexpr float GyrTs=1.0/200.0;
     static constexpr float AccTs=1.0/100.0;
 
     static constexpr float MagTs=1.0/100;
@@ -124,7 +124,7 @@ struct BMI270
             static constexpr uint8_t noisePerfMode = 1 << 6;
             static constexpr uint8_t filterHighPerfMode = 1 << 7;
 
-            static constexpr uint8_t value = rate400Hz | DLPFModeNorm | noisePerfMode | filterHighPerfMode;
+            static constexpr uint8_t value = rate200Hz | DLPFModeNorm | noisePerfMode | filterHighPerfMode;
         };
 
         struct GyrRange {
