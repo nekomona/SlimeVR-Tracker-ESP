@@ -211,7 +211,7 @@ public:
 
         SlimeVR::Configuration::CalibrationConfig sensorCalibration = configuration.getCalibration(sensorId);
 
-        bool calibrated = false;
+        bool calibrated = true;
 
         // If no compatible calibration data is found, the calibration data will just be zero-ed out
         if (sensorCalibration.type == SlimeVR::Configuration::CalibrationConfigType::SFUSION
